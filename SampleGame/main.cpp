@@ -1,15 +1,22 @@
+#include <Qt\qapplication.h>
+#include <Windows.h>
+#include "War.h"
 #include <WebCamSource.h>
-
-void main()
+int main( int argc , char** argv )
 {
 	CoInitialize(0);
+	QApplication app(argc, argv);
 	WebCamSource source;
-	IEnumMoniker* list;
-	source.getListOfCameras( &list );
+	IEnumMoniker* cameraList;
+	source.getListOfCameras( &cameraList );
 	IMoniker* selected = 0;
-	list->Next( 1 , &selected, NULL );
+	cameraList->Next( 1 , &selected , NULL );
 	source.selectCamera( *selected );
 	source.initialize();
-	while ( true );
+	War war;
+	war.setCameraSource( &source );
+	war.show();
+	int toReturn = app.exec();
 	CoUninitialize();
+	return toReturn;
 }

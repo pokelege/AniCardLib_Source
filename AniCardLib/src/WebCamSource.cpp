@@ -1,5 +1,8 @@
 #include <WebCamSource.h>
 #include <qedit.h>
+#include <wmcodecdsp.h>
+#include <dmodshow.h>
+#include <Dmoreg.h>
 WebCamSource::WebCamSource() : selectedCamera(0)
 {
 
@@ -39,6 +42,16 @@ HRESULT WebCamSource::initialize()
 	IGraphBuilder* graph;
 	CoCreateInstance( CLSID_FilterGraph , NULL , CLSCTX_INPROC_SERVER , IID_PPV_ARGS( &graph ) );
 	graph->AddFilter( selectedCamera , L"Camera" );
+
+	IBaseFilter* converter;
+	CoCreateInstance( CLSID_DMOWrapperFilter , NULL , CLSCTX_INPROC_SERVER , IID_IBaseFilter , ( void** ) &converter );
+
+	IDMOWrapperFilter* wrapper;
+	converter->QueryInterface( IID_IDMOWrapperFilter , ( void** ) &wrapper );
+	wrapper->Init( CLSID_CColorConvertDMO , DMOCATEGORY_VIDEO_EFFECT );
+	wrapper->Release();
+	graph->AddFilter( converter , L"Converter" );
+
 	IBaseFilter* grabber;
 	CoCreateInstance( CLSID_SampleGrabber , NULL , CLSCTX_INPROC_SERVER , IID_IBaseFilter, (void**)&grabber);
 	graph->AddFilter( grabber , L"Grabber" );
@@ -47,7 +60,7 @@ HRESULT WebCamSource::initialize()
 	CoCreateInstance( CLSID_NullRenderer , NULL , CLSCTX_INPROC_SERVER , IID_IBaseFilter , ( void** ) &nullRenderer );
 	graph->AddFilter( nullRenderer , L"NullRender" );
 
-	IPin *cameraPin , *grabberPin,*grabberPin2 , *rendererPin;
+	IPin *cameraPin, *converterPin, *converterPin2 , *grabberPin,*grabberPin2 , *rendererPin;
 
 	IEnumPins* enumPins;
 	selectedCamera->EnumPins( &enumPins );
@@ -57,6 +70,23 @@ HRESULT WebCamSource::initialize()
 		cameraPin->QueryDirection( &pinDir );
 		if ( pinDir == PINDIR_OUTPUT ) break;
 	}
+
+	converter->EnumPins( &enumPins );
+	while ( S_OK == enumPins->Next( 1 , &converterPin , NULL ) )
+	{
+		PIN_DIRECTION pinDir;
+		converterPin->QueryDirection( &pinDir );
+		if ( pinDir == PINDIR_INPUT ) break;
+	}
+
+	converter->EnumPins( &enumPins );
+	while ( S_OK == enumPins->Next( 1 , &converterPin2 , NULL ) )
+	{
+		PIN_DIRECTION pinDir;
+		converterPin2->QueryDirection( &pinDir );
+		if ( pinDir == PINDIR_OUTPUT ) break;
+	}
+
 
 	grabber->EnumPins( &enumPins );
 	while ( S_OK == enumPins->Next( 1 , &grabberPin , NULL ) )
@@ -82,10 +112,21 @@ HRESULT WebCamSource::initialize()
 		if ( pinDir == PINDIR_INPUT ) break;
 	}
 
-	graph->Connect( cameraPin , grabberPin );
-	graph->Connect( grabberPin2 , rendererPin );
-
 	ISampleGrabber* sampleGrabber;
+
+	grabber->QueryInterface( IID_ISampleGrabber , ( void** ) &sampleGrabber );
+	sampleGrabber->SetOneShot( FALSE );
+	sampleGrabber->SetBufferSamples( TRUE );
+	AM_MEDIA_TYPE mediaType2;
+	ZeroMemory( &mediaType2 , sizeof( mediaType2 ) );
+	mediaType2.majortype = MEDIATYPE_Video;
+	mediaType2.subtype = MEDIASUBTYPE_RGB32;
+	sampleGrabber->SetMediaType( &mediaType2 );
+	sampleGrabber->Release();
+
+	graph->Connect( cameraPin , converterPin );
+	graph->Connect( converterPin2 , grabberPin );
+	graph->Connect( grabberPin2 , rendererPin );
 
 	grabber->QueryInterface( IID_ISampleGrabber , ( void** ) &sampleGrabber );
 	sampleGrabber->SetOneShot( FALSE );

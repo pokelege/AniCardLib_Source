@@ -5,10 +5,10 @@
 #include <PictureFetcher.h>
 class ANICARDLIB_SHARED WebCamSource
 {
-	PictureFetcher* fetcher;
 	IBaseFilter* selectedCamera;
 	IMediaControl* media;
 public:
+	PictureFetcher* fetcher;
 	WebCamSource();
 	HRESULT getListOfCameras( IEnumMoniker** theListToPopulate );
 	HRESULT selectCamera( IMoniker& camera );

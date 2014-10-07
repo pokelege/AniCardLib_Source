@@ -9,12 +9,9 @@ STDMETHODIMP_( ULONG ) PictureFetcher::Release()
 	return 2;
 }
 
-PictureFetcher::PictureFetcher(AM_MEDIA_TYPE mediaType) : picture(0)
+PictureFetcher::PictureFetcher(AM_MEDIA_TYPE mediaType) : picture(0) , canGrab(false)
 {
 	this->mediaType = mediaType;
-	VIDEOINFOHEADER *head = ( VIDEOINFOHEADER* )mediaType.pbFormat;
-	width = abs( head->rcSource.left - head->rcSource.right );
-	height = abs( head->rcSource.top - head->rcSource.bottom );
 }
 
 STDMETHODIMP PictureFetcher::QueryInterface( REFIID riid , void **ppvObject )
@@ -35,6 +32,8 @@ STDMETHODIMP PictureFetcher::QueryInterface( REFIID riid , void **ppvObject )
 
 STDMETHODIMP PictureFetcher::SampleCB( double SampleTime , IMediaSample *pSample )
 {
+	if ( picture ) return S_OK;
+	VIDEOINFOHEADER *head = ( VIDEOINFOHEADER* ) mediaType.pbFormat;
 	byte* pBuffer;
 	pSample->GetPointer(&pBuffer);
 	
@@ -43,6 +42,11 @@ STDMETHODIMP PictureFetcher::SampleCB( double SampleTime , IMediaSample *pSample
 	picture = new byte[BufferLen];
 	bufferLength = BufferLen;
 	memcpy( picture , pBuffer , BufferLen );
+	
+	width = head->bmiHeader.biWidth;
+	height = head->bmiHeader.biHeight;
+	float s = bufferLength / ( width * height );
+	canGrab = true;
 	return S_OK;
 }
 STDMETHODIMP PictureFetcher::BufferCB( double SampleTime , BYTE *pBuffer , long BufferLen )
