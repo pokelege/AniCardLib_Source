@@ -40,7 +40,7 @@ void War::initializeGL()
 	geometry->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 	geometry->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 
-	planeTexture = GraphicsTextureManager::globalTextureManager.addTexture( "nep.png" );
+	planeTexture = GraphicsTextureManager::globalTextureManager.addTexture( 0,0,0,0 );
 
 	Renderable* renderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	renderable->initialize( 10 , 1 );
@@ -51,7 +51,7 @@ void War::initializeGL()
 	renderable->culling = CT_NONE;
 	renderable->addTexture( planeTexture );
 
-	GameObject* plane = GameObjectManager::globalGameObjectManager.addGameObject();
+	plane = GameObjectManager::globalGameObjectManager.addGameObject();
 	plane->addComponent( renderable );
 	plane->scale = glm::vec3( 10 , 10 , 10 );
 
@@ -95,7 +95,7 @@ void War::paintGL()
 		if ( cameraSource->fetcher->canGrab )
 		{
 			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) cameraSource->fetcher->picture , cameraSource->fetcher->width , cameraSource->fetcher->height , 0 );
-			
+			plane->scale = 0.01f * glm::vec3( cameraSource->fetcher->width , cameraSource->fetcher->height , 1 );
 			delete[] cameraSource->fetcher->picture;
 			cameraSource->fetcher->picture = 0;
 			cameraSource->fetcher->canGrab = false;

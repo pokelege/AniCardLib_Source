@@ -7,6 +7,7 @@ class ANICARDLIB_SHARED WebCamSource
 {
 	IBaseFilter* selectedCamera;
 	IMediaControl* media;
+	IGraphBuilder* graph;
 public:
 	PictureFetcher* fetcher;
 	WebCamSource();

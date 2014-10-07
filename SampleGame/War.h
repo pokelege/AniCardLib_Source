@@ -3,12 +3,14 @@
 
 class WebCamSource;
 struct TextureInfo;
+class GameObject;
 class War : public QGLWidget
 {
 	Q_OBJECT;
 
 	WebCamSource* cameraSource;
 	TextureInfo* planeTexture;
+	GameObject* plane;
 	//int texture;
 public:
 	War();
