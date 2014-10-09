@@ -21,6 +21,8 @@
 #include <Graphics\Camera.h>
 #include <WebCamSource.h>
 #include <Qt\qtimer.h>
+#include <Graphics\AnimationRenderingInfo.h>
+
 War::War() :cameraSource(0)
 {
 	
@@ -39,7 +41,8 @@ void War::initializeGL()
 	GeometryInfo* geometry = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/plane.pmd" , GraphicsBufferManager::globalBufferManager );
 	geometry->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 	geometry->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
-
+	geometry->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+	geometry->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 	planeTexture = GraphicsTextureManager::globalTextureManager.addTexture( 0,0,0,0 );
 
 	Renderable* renderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
@@ -65,10 +68,28 @@ void War::initializeGL()
 	camera->direction = glm::vec3( 0 , 0 , -1 );
 	player->addComponent( camera );
 
-	//texture = 0;
+	GeometryInfo* diamond = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/diamond.pmd" , GraphicsBufferManager::globalBufferManager );
+	diamond->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	diamond->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+	diamond->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+	diamond->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 
-	//GraphicsSharedUniformManager::globalSharedUniformManager.setSharedUniform()
+	Renderable* model1Renderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	model1Renderable->initialize( 10 , 1 );
+	model1Renderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	model1Renderable->geometryInfo = diamond;
+	model1Renderable->shaderInfo = shader;
+	model1Renderable->alphaBlendingEnabled = false;
+	model1Renderable->culling = CT_NONE;
+	model1Renderable->addTexture( planeTexture );
 
+	AnimationRenderingInfo* model1Animation = new AnimationRenderingInfo;
+	
+
+	GameObject* model1 = GameObjectManager::globalGameObjectManager.addGameObject();
+	model1->addComponent( model1Renderable );
+	model1->addComponent( model1Animation );
+	model1->translate = glm::vec3( 7 , 0 , 3 );
 	QTimer* timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
