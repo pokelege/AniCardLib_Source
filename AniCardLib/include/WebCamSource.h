@@ -11,7 +11,9 @@ class ANICARDLIB_SHARED WebCamSource
 public:
 	PictureFetcher* fetcher;
 	WebCamSource();
+	~WebCamSource();
 	HRESULT getListOfCameras( IEnumMoniker** theListToPopulate );
 	HRESULT selectCamera( IMoniker& camera );
 	HRESULT initialize();
+	HRESULT destroy();
 };

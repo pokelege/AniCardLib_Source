@@ -8,7 +8,10 @@ WebCamSource::WebCamSource() : selectedCamera(0)
 {
 
 }
-
+WebCamSource::~WebCamSource()
+{
+	destroy();
+}
 HRESULT WebCamSource::getListOfCameras( IEnumMoniker** theListToPopulate )
 {
 	HRESULT result;
@@ -173,4 +176,12 @@ HRESULT WebCamSource::initialize()
 	graph->QueryInterface( IID_PPV_ARGS( &media ) );
 	media->Run();
 	return 0;
+}
+
+HRESULT WebCamSource::destroy()
+{
+	if ( !selectedCamera ) return E_POINTER;
+	media->Stop();
+	delete fetcher;
+	return S_OK;
 }

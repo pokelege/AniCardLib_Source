@@ -22,10 +22,17 @@
 #include <WebCamSource.h>
 #include <Qt\qtimer.h>
 #include <Graphics\AnimationRenderingInfo.h>
-
+#include "DebugMemory.h"
 War::War() :cameraSource(0)
 {
 	
+}
+War::~War()
+{
+	CommonGraphicsCommands::destroyGlobalGraphics();
+	GameObjectManager::globalGameObjectManager.destroy();
+	delete model1Animation;
+	delete timer;
 }
 void War::initializeGL()
 {
@@ -83,14 +90,14 @@ void War::initializeGL()
 	model1Renderable->culling = CT_NONE;
 	model1Renderable->addTexture( planeTexture );
 
-	AnimationRenderingInfo* model1Animation = new AnimationRenderingInfo;
+	model1Animation = new AnimationRenderingInfo;
 	
 
 	GameObject* model1 = GameObjectManager::globalGameObjectManager.addGameObject();
 	model1->addComponent( model1Renderable );
 	model1->addComponent( model1Animation );
 	model1->translate = glm::vec3( 7 , 0 , 3 );
-	QTimer* timer = new QTimer();
+	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
 }
@@ -113,13 +120,14 @@ void War::paintGL()
 {
 	if ( cameraSource )
 	{
-		if ( cameraSource->fetcher->canGrab )
+		unsigned char* pictureData = 0;
+		long width;
+		long height;
+		if ( cameraSource->fetcher->getPicture(&pictureData, &width, &height) )
 		{
-			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) cameraSource->fetcher->picture , cameraSource->fetcher->width , cameraSource->fetcher->height , 0 );
-			plane->scale = 0.01f * glm::vec3( cameraSource->fetcher->width , cameraSource->fetcher->height , 1 );
-			delete[] cameraSource->fetcher->picture;
-			cameraSource->fetcher->picture = 0;
-			cameraSource->fetcher->canGrab = false;
+			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) pictureData, width , height , 0 );
+			plane->scale = 0.01f * glm::vec3( width , height , 1 );
+			cameraSource->fetcher->finishedUsing();
 		}
 	}
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
