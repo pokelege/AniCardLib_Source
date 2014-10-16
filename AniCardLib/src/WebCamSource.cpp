@@ -33,7 +33,7 @@ HRESULT WebCamSource::getListOfCameras( IEnumMoniker** theListToPopulate )
 	return result;
 }
 
-HRESULT WebCamSource::selectCamera( IMoniker& camera )
+HRESULT WebCamSource::selectCamera( IMoniker& camera , std::vector<CameraConfigs>& caps )
 {
 	IBaseFilter* test = 0;
 	HRESULT result = camera.BindToObject(0,0,IID_IBaseFilter, reinterpret_cast<void**>(&test));
@@ -60,11 +60,10 @@ HRESULT WebCamSource::selectCamera( IMoniker& camera )
 			AM_MEDIA_TYPE* type;
 			if (SUCCEEDED(configuration->GetStreamCaps( i , &type , ( BYTE* ) &con ) ))
 			{
-				if ( con.MaxOutputSize.cx == 1280 && con.MaxOutputSize.cy == 720 )
-				{
-					configuration->SetFormat( type );
-				}
-				
+				CameraConfigs lolz;
+				lolz.caps = con;
+				lolz.index = i;
+				caps.push_back( lolz );
 			}
 
 		}
@@ -73,6 +72,32 @@ HRESULT WebCamSource::selectCamera( IMoniker& camera )
 	return result;
 }
 
+void WebCamSource::selectResolution( CameraConfigs& config )
+{
+	IPin* cameraPin;
+	IEnumPins* enumPins;
+	selectedCamera->EnumPins( &enumPins );
+	while ( S_OK == enumPins->Next( 1 , &cameraPin , NULL ) )
+	{
+		PIN_DIRECTION pinDir;
+		cameraPin->QueryDirection( &pinDir );
+		if ( pinDir == PINDIR_OUTPUT ) break;
+	}
+
+	IAMStreamConfig* configuration;
+	cameraPin->QueryInterface( IID_IAMStreamConfig , ( void** ) &configuration );
+	int count , size;
+	configuration->GetNumberOfCapabilities( &count , &size );
+	if ( size == sizeof( VIDEO_STREAM_CONFIG_CAPS ) )
+	{
+		VIDEO_STREAM_CONFIG_CAPS con;
+		AM_MEDIA_TYPE* type;
+		if ( SUCCEEDED( configuration->GetStreamCaps( config.index , &type , ( BYTE* ) &con ) ) )
+		{
+			configuration->SetFormat( type );
+		}
+	}
+}
 
 
 HRESULT WebCamSource::initialize()

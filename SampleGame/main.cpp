@@ -1,7 +1,7 @@
 #pragma warning(disable:4127)
 #include <Qt\qapplication.h>
 #include <Windows.h>
-#include "War.h"
+#include "Setup.h"
 #include <WebCamSource.h>
 #include "DebugMemory.h"
 int main( int argc , char** argv )
@@ -12,16 +12,9 @@ int main( int argc , char** argv )
 #endif
 	CoInitialize(0);
 	QApplication app(argc, argv);
-	WebCamSource source;
-	IEnumMoniker* cameraList;
-	source.getListOfCameras( &cameraList );
-	IMoniker* selected = 0;
-	cameraList->Next( 1 , &selected , NULL );
-	source.selectCamera( *selected );
-	source.initialize();
-	War war;
-	war.setCameraSource( &source );
-	war.show();
+	Setup* set = new Setup;
+	set->setAttribute( Qt::WA_DeleteOnClose );
+	set->show();
 	int toReturn = app.exec();
 	CoUninitialize();
 	return toReturn;

@@ -22,6 +22,8 @@
 #include <WebCamSource.h>
 #include <Qt\qtimer.h>
 #include <Graphics\AnimationRenderingInfo.h>
+#include <Graphics\GraphicsTextureManager.h>
+#include <Audio\AudioController.h>
 #include "DebugMemory.h"
 War::War() :cameraSource(0)
 {
@@ -33,17 +35,29 @@ War::~War()
 	GameObjectManager::globalGameObjectManager.destroy();
 	delete model1Animation;
 	delete timer;
+	delete cameraSource;
 }
 void War::initializeGL()
 {
 	CommonGraphicsCommands::initializeGlobalGraphics();
 	GameObjectManager::globalGameObjectManager.initialize();
+	ShaderInfo* shader;
+	{
+		std::string errors;
+		std::string vert = FileReader( "Shaders/SelfIllumDiffuseVertex.glsl" );
+		std::string frag = FileReader( "Shaders/SelfIllumDiffuseFragmentCamera.glsl" );
+		shader = GraphicsShaderManager::globalShaderManager.createShaderInfo( vert.c_str() , frag.c_str() , &errors );
+		std::cout << errors.c_str() << std::endl;
+	}
 
-	std::string errors;
-	std::string vert = FileReader( "Shaders/SelfIllumDiffuseVertex.glsl" );
-	std::string frag = FileReader( "Shaders/SelfIllumDiffuseFragment.glsl" );
-	ShaderInfo* shader = GraphicsShaderManager::globalShaderManager.createShaderInfo( vert.c_str() , frag.c_str(), &errors );
-	std::cout << errors.c_str() << std::endl;
+	ShaderInfo* shader2;
+	{
+		std::string errors;
+		std::string vert = FileReader( "Shaders/SelfIllumDiffuseVertex.glsl" );
+		std::string frag = FileReader( "Shaders/SelfIllumDiffuseFragment.glsl" );
+		shader2 = GraphicsShaderManager::globalShaderManager.createShaderInfo( vert.c_str() , frag.c_str() , &errors );
+		std::cout << errors.c_str() << std::endl;
+	}
 
 	GeometryInfo* geometry = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/plane.pmd" , GraphicsBufferManager::globalBufferManager );
 	geometry->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
@@ -81,22 +95,27 @@ void War::initializeGL()
 	diamond->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 	diamond->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 
+	TextureInfo* diamondTexture = GraphicsTextureManager::globalTextureManager.addTexture( "Textures/diamond.png" );
+
 	Renderable* model1Renderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	model1Renderable->initialize( 10 , 1 );
 	model1Renderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
 	model1Renderable->geometryInfo = diamond;
-	model1Renderable->shaderInfo = shader;
+	model1Renderable->shaderInfo = shader2;
 	model1Renderable->alphaBlendingEnabled = false;
 	model1Renderable->culling = CT_NONE;
-	model1Renderable->addTexture( planeTexture );
+	model1Renderable->addTexture( diamondTexture );
 
 	model1Animation = new AnimationRenderingInfo;
 	
 
+	AudioController::globalAudioController.initialize();
+	AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
 	GameObject* model1 = GameObjectManager::globalGameObjectManager.addGameObject();
 	model1->addComponent( model1Renderable );
 	model1->addComponent( model1Animation );
-	model1->translate = glm::vec3( 7 , 0 , 3 );
+	model1->rotate = glm::vec3( 90 , 90, 0 );
+	model1->translate =  glm::vec3(-5 , 0 , 0) ;
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );

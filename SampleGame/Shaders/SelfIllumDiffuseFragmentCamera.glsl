@@ -13,5 +13,6 @@ void main()
 {
 	//if(useTexture) 
 	newColor = texture2D(colorTexture, uvsend);
+	newColor = vec4(newColor.z, newColor.y, newColor.x,1);
 	//else newColor = color;
 };
