@@ -58,6 +58,7 @@ void Setup::selectedCamera(int selection)
 
 void Setup::run()
 {
+	if ( resolutionSelection->currentIndex() < 0 ) return;
 	source->selectResolution( resolutions[resolutionSelection->currentIndex()] );
 	source->initialize();
 	War* war = new War;

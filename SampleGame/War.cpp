@@ -36,6 +36,7 @@ War::~War()
 	delete model1Animation;
 	delete timer;
 	delete cameraSource;
+	AudioController::globalAudioController.destroy();
 }
 void War::initializeGL()
 {
