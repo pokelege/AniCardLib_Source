@@ -30,9 +30,11 @@ void ARMarkerDetector::findCard( PictureFetcher* thePhoto )
 		if ( copiedPictureInstance ) delete[] copiedPictureInstance;
 		if ( grayscaleImage ) delete[] grayscaleImage;
 		if ( gradientDirection ) delete[] gradientDirection;
+		if ( gradientIntensity ) delete[] gradientIntensity;
 		copiedPictureInstance = new unsigned char[width * height * 3];
 		grayscaleImage = new unsigned char[width * height];
 		gradientDirection = new float[width * height];
+		gradientIntensity = new float[width * height];
 		this->width = width;
 		this->height = height;
 	}
@@ -45,8 +47,83 @@ void ARMarkerDetector::_findCard()
 	std::vector<Line> theLines;
 	Clock c;
 	c.Start();
+	int GxMask[3][3] =
+	{
+		{ -1 , 0 , 1 } ,
+		{ -2 , 0 , 2 } ,
+		{ -1 , 0 , 1 }
+	};
+	int GyMask[3][3] =
+	{
+		{ 1 , 2 , 1 } ,
+		{ 0 , 0 , 0 } ,
+		{ -1 , -2 , -1 }
+	};
+
+	int gaussianMask[5][5] =
+	{
+		{ 2 , 4 , 5 , 4 , 2 } ,
+		{ 4 , 9 , 12 , 9 , 4 } ,
+		{ 5 , 12 , 15 , 12 , 2 } ,
+		{ 4 , 9 , 12 , 9 , 4 } ,
+		{ 2 , 4 , 5 , 4 , 2 }
+	};
+	//gaussianBlur
+	for ( long row = 2; row < height - 2; ++row )
+	{
+		for ( long col = 2; col < width - 2; ++col )
+		{
+			float newPixel = 0;
+			for ( long rowOffset = -2; rowOffset <= 2; ++rowOffset )
+			{
+				for ( long colOffset = -2; colOffset <= 2; ++colOffset )
+				{
+					//this is real row and col
+					long rowTotal = row + rowOffset;
+					long colTotal = col + colOffset;
+					//pixel location on image
+					unsigned long iOffset = ( unsigned long ) ( rowTotal * 3 * this->width + colTotal * 3 );
+					//do this for all color channels
+					float grayPixel = ( ( float ) ( copiedPictureInstance + iOffset )[0] + ( float ) ( copiedPictureInstance + iOffset )[1] + ( float ) ( copiedPictureInstance + iOffset )[2] ) / 3.0f;
+					//std::cout << grayPixel << std::endl;
+					newPixel += grayPixel * gaussianMask[2 + rowOffset][2 + colOffset];
+				}
+			}
+			//real pixel location
+			unsigned long i = ( unsigned long ) ( ( row ) * this->width + ( col ) );
+			//apply blur
+			grayscaleImage[i] = ( unsigned char ) glm::clamp( newPixel / 159 , 0.0f , ( float ) UCHAR_MAX );
+			//std::cout << newPixel / 159 << std::endl;
+		}
+	}
+
+	//gradientChecker
+	for ( long row = 1; row < height - 1; ++row )
+	{
+		for ( long col = 1; col < width - 1; ++col )
+		{
+			float Gx = 0 , Gy = 0;
+
+			for ( long rowOffset = -1; rowOffset <= 1; ++rowOffset )
+			{
+				for ( long colOffset = -1; colOffset <= 1; ++colOffset )
+				{
+					long rowTotal = row + rowOffset;
+					long colTotal = col + colOffset;
+					unsigned long iOffset = ( unsigned long ) ( rowTotal* this->width + colTotal );
+
+					Gx += grayscaleImage[iOffset] * GxMask[rowOffset + 1][colOffset + 1];
+					Gy += grayscaleImage[iOffset] * GyMask[rowOffset + 1][colOffset + 1];
+				}
+			}
+			unsigned long i = ( unsigned long ) ( ( row ) * this->width + ( col ) );
+			*( gradientDirection + i ) = ( atan2f( Gy , Gx ) * 180 ) / ( float ) M_PI;
+			*(gradientIntensity + i) = sqrt( ( Gx * Gx ) + ( Gy * Gy ) );
+		}
+	}
+
 	findLines( theLines );
-	float angleThreshold = 10;
+	float angleThreshold = 15;
 	for ( unsigned int i = 0; i < theLines.size(); ++i )
 	{
 		Line* lineToConnect = &theLines[i];
@@ -158,109 +235,42 @@ void ARMarkerDetector::_findCard()
 
 void ARMarkerDetector::findLines( std::vector<Line>& linesToAdd )
 {
-	std::vector<std::future<std::vector<Line>>*> threads;
+	std::vector<std::future<std::vector<Line>>> threads;
 	for ( long y = 0; y < height; y += 10 )
 	{
 		for ( long x = 0; x < width; x += 10 )
 		{
-			threads.push_back( new std::future<std::vector<Line>>( std::async( std::launch::async , &ARMarkerDetector::findLinesOnRegion , this , x , y , 10 , 10 ) ) );
+			threads.push_back( std::async( std::launch::async , &ARMarkerDetector::findLinesOnRegion , this , x , y , 10 , 10 ) );
 		}
 	}
 	for ( unsigned int i = 0; i < threads.size(); ++i )
 	{
-		threads[i]->wait();
-		std::vector<Line> theLines = threads[i]->get();
+		threads[i].wait();
+		std::vector<Line> theLines = threads[i].get();
 		for ( unsigned int j = 0; j < theLines.size(); ++j )
 		{
 			linesToAdd.push_back( theLines[j] );
 		}
 		//std::cout << "num lines " << linesToAdd.size() << std::endl;
-		delete threads[i];
 	}
 }
 
 std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long width , long height )
 {
-	int GxMask[3][3] =
-	{
-		{ -1 , 0 , 1 } ,
-		{ -2 , 0 , 2 } ,
-		{ -1 , 0 , 1 }
-	};
-	int GyMask[3][3] =
-	{
-		{ 1 , 2 , 1 } ,
-		{ 0 , 0 , 0 } ,
-		{ -1 , -2 , -1 }
-	};
-
-	int gaussianMask[5][5] =
-	{
-		{ 2 , 4 , 5 , 4 , 2 } ,
-		{ 4 , 9 , 12 , 9 , 4 } ,
-		{ 5 , 12 , 15 , 12 , 2 } ,
-		{ 4 , 9 , 12 , 9 , 4 } ,
-		{ 2 , 4 , 5 , 4 , 2 }
-	};
-
-	//time_t thisTime = time( 0 );
-	//gaussian blur
-	for ( long row = y + 2; row < ( y + height ) - 2 && row < this->height - 2; ++row )
-	{
-		for ( long col = x + 2; col < ( x + width ) - 2 && col < this->width - 2; ++col )
-		{
-			float newPixel = 0;
-			for ( long rowOffset = -2; rowOffset <= 2; ++rowOffset )
-			{
-				for ( long colOffset = -2; colOffset <= 2; ++colOffset )
-				{
-					//this is real row and col
-					long rowTotal = row + rowOffset;
-					long colTotal = col + colOffset;
-					//pixel location on image
-					unsigned long iOffset = ( unsigned long ) ( rowTotal * 3 * this->width + colTotal * 3 );
-					//do this for all color channels
-					float grayPixel = ( ( float ) ( copiedPictureInstance + iOffset )[0] + ( float ) ( copiedPictureInstance + iOffset )[1] + ( float ) ( copiedPictureInstance + iOffset )[2] ) / 3.0f;
-					newPixel += grayPixel * gaussianMask[2 + rowOffset][2 + colOffset];
-				}
-			}
-			//real pixel location
-			unsigned long i = ( unsigned long ) ( (row) * this->width + (col) );
-			//apply blur
-			*( grayscaleImage + i ) = (unsigned char)glm::clamp( newPixel / 159, 0.0f, (float)UCHAR_MAX);
-		}
-	}
-	//std::cout << "gaussian blur " << ( time( 0 ) - thisTime ) << std::endl;
-
 	std::vector<Line> lines;
 
 	std::vector<EdgelInList> edgels;
 
 	float upperThreshold = 30.0f;
 
-	for ( long row = y + 1; row < ( y + height ) - 1 && row < this->height - 1; ++row )
+	for ( long row = y; row < ( y + height )&& row < this->height; ++row )
 	{
-		for ( long col = x + 1; col < ( x + width ) - 1 && col < this->width - 1; ++col )
+		for ( long col = x; col < ( x + width ) && col < this->width; ++col )
 		{
-			float Gx = 0, Gy = 0;
-
-			for ( long rowOffset = -1; rowOffset <= 1; ++rowOffset )
-			{
-				for ( long colOffset = -1; colOffset <= 1; ++colOffset )
-				{
-					long rowTotal = row + rowOffset;
-					long colTotal = col + colOffset;
-					unsigned long iOffset = ( unsigned long ) ( rowTotal* this->width + colTotal );
-
-					Gx += grayscaleImage[iOffset] * GxMask[rowOffset + 1][colOffset + 1];
-					Gy += grayscaleImage[iOffset] * GyMask[rowOffset + 1][colOffset + 1];
-				}
-			}
 			unsigned long i = ( unsigned long ) ( ( row ) * this->width + ( col ) );
-			*( gradientDirection + i ) = ( atan2f( Gy , Gx ) * 180 ) / ( float ) M_PI;
-			float gradientIntensity = sqrt( ( Gx * Gx ) + ( Gy * Gy ) );
-			//std::cout << gradientIntensity << std::endl;
+			float gradientIntensity = this->gradientIntensity[i];
 			if ( gradientIntensity < upperThreshold ) continue;
+			//std::cout << *( gradientDirection + i ) << std::endl;
 			EdgelInList edgel;
 			edgel.edgel.pos = glm::vec2( col + x , row + y );
 			edgel.edgel.gradientIntensity = gradientIntensity;
@@ -268,10 +278,10 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 		}
 	}
 
-	float angleThreshold = 10;
-	float maxDistance = 4;
-	unsigned int maxIterations = (unsigned int)(0.75f * (height * width));
-	unsigned int minNumEdgels = 3;
+	float angleThreshold = 15.0f;
+	float maxDistance = 5;
+	unsigned int maxIterations = (unsigned int)(1.75f * (height * width));
+	unsigned int minNumEdgels = 1;
 
 	std::vector<Line> tempLines;
 
