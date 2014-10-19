@@ -24,6 +24,7 @@
 #include <Graphics\AnimationRenderingInfo.h>
 #include <Graphics\GraphicsTextureManager.h>
 #include <Audio\AudioController.h>
+#include <ARMarkerDetector.h>
 #include "DebugMemory.h"
 War::War() :cameraSource(0)
 {
@@ -127,6 +128,10 @@ void War::update()
 	WindowInfo::width = width();
 	WindowInfo::height = height();
 	Clock::update();
+	if ( cameraSource )
+	{
+		ARMarkerDetector::global.findCard( cameraSource->fetcher );
+	}
 	QPoint point = cursor().pos();
 	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( point.x() , point.y() ) );
 	GameObjectManager::globalGameObjectManager.earlyUpdateParents();
