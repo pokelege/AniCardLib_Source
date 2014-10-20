@@ -227,10 +227,109 @@ void ARMarkerDetector::_findCard()
 			lastPixel = glm::ivec2( testPixel );
 		}
 	}
+	std::vector<Quad> rectangles;
+	bool loop = theLines.size() >= 4;
+	while ( loop &&  theLines.size() >= 4 )
+	{
+		bool found = false;
+		ConstructingQuad testQuad;
+		for ( unsigned int i = 0; i < theLines.size() && !found; ++i )
+		{
+			float thisRealAngle = theLines[i].angle;
+			if ( thisRealAngle < 0 ) thisRealAngle += 360;
+			Line* shortestLine = 0;
+			float lastLineDistance = FLT_MAX;
+			for ( unsigned int j = 1; j < theLines.size(); ++j )
+			{
+				if ( i == j ) continue;
+				float testRealAngle = theLines[j].angle;
+				if ( testRealAngle < 0 ) testRealAngle += 360;
+				if ( abs( (thisRealAngle + 90.0f) - testRealAngle ) > angleThreshold ) continue;
+				float testLineDistance = glm::length( glm::vec2( theLines[j].start ) - glm::vec2( theLines[i].end ) );
+				if ( testLineDistance < lastLineDistance )
+				{
+					lastLineDistance = testLineDistance;
+					shortestLine = &theLines[j];
+				}
+			}
+			if ( !shortestLine ) continue;
+			testQuad.line[0] = &theLines[i];
+			testQuad.line[1] = shortestLine;
+			found = findQuad( testQuad , theLines , 1 );
+		}
 
+		if ( found )
+		{
+			Quad quad;
+			quad.pt1 = testQuad.line[0]->start;
+			quad.pt2 = testQuad.line[1]->start;
+			quad.pt3 = testQuad.line[2]->start;
+			quad.pt4 = testQuad.line[3]->start;
 
+			testQuad.line[0]->deletion = true;
+			testQuad.line[1]->deletion = true;
+			testQuad.line[2]->deletion = true;
+			testQuad.line[3]->deletion = true;
+
+			bool cleaned = false;
+			while ( !cleaned )
+			{
+				int start = -1 , end = -1;
+				for ( unsigned int jay = 0; jay < theLines.size(); ++jay )
+				{
+					if ( theLines[jay].deletion && start < 0 )
+					{
+						start = ( int ) jay;
+					}
+					else if ( start >= 0 && !theLines[jay].deletion )
+					{
+						end = ( int ) jay - 1;
+						break;
+					}
+				}
+				if ( start < 0 ) cleaned = true;
+				else if ( end < 0 ) theLines.erase( theLines.begin() + start , theLines.end() );
+				else if ( start == end ) theLines.erase( theLines.begin() + start );
+				else theLines.erase( theLines.begin() + start , theLines.begin() + end );
+			}
+		}
+		else loop = false;
+	}
 	std::cout << "num lines " << theLines.size() << std::endl;
 	std::cout << "full algoTime " << c.Stop() << std::endl;
+}
+
+bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index )
+{
+	if ( index == 4 ) return true;
+	float angleThreshold = 15;
+	float thisRealAngle = quadToEdit.line[index]->angle;
+	if ( thisRealAngle < 0 ) thisRealAngle += 360;
+	Line* shortestLine = 0;
+	float lastLineDistance = FLT_MAX;
+	bool loop = true;
+	while ( loop )
+	{
+		loop = false;
+		for ( unsigned int j = 0; j < lines.size() && !loop; ++j )
+		{
+			if ( quadToEdit.line[index] == &lines[j] ) continue;
+			float testRealAngle = lines[j].angle;
+			if ( testRealAngle < 0 ) testRealAngle += 360;
+			if ( abs( ( thisRealAngle + 90.0f ) - testRealAngle ) > angleThreshold ) continue;
+			float testLineDistance = glm::length( glm::vec2( lines[j].start ) - glm::vec2( quadToEdit.line[index]->end ) );
+			if ( testLineDistance < lastLineDistance )
+			{
+				lastLineDistance = testLineDistance;
+				shortestLine = &lines[j];
+			}
+
+			if ( !shortestLine ) return false;
+			quadToEdit.line[index + 1] = shortestLine;
+			loop = !findQuad( quadToEdit , lines , index + 1 );
+		}
+	}
+	return found;
 }
 
 void ARMarkerDetector::findLines( std::vector<Line>& linesToAdd )

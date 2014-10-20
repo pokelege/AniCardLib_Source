@@ -24,7 +24,24 @@ struct Line
 	glm::ivec2 start;
 	glm::ivec2 end;
 	float angle;
+	bool deletion;
+	Line() : deletion(false) {}
 };
+
+struct ConstructingQuad
+{
+	Line* line[4];
+	ConstructingQuad()
+	{
+		for ( unsigned int i = 0; i < 4; ++i ) line[i] = 0;
+	}
+};
+
+struct Quad
+{
+	glm::ivec2 pt1 , pt2 , pt3 , pt4;
+};
+
 class ANICARDLIB_SHARED ARMarkerDetector
 {
 	long width , height;
@@ -37,6 +54,7 @@ class ANICARDLIB_SHARED ARMarkerDetector
 	void findLines(std::vector<Line>& linesToAdd );
 	std::vector<Line> findLinesOnRegion(long x , long y , long width , long height);
 	void _findCard();
+	bool findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index );
 public:
 	void findCard( PictureFetcher* picture );
 	static ARMarkerDetector global;
