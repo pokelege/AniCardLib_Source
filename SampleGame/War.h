@@ -12,11 +12,11 @@ class War : public QGLWidget
 	Q_OBJECT;
 
 	WebCamSource* cameraSource;
-	TextureInfo* planeTexture;
+	TextureInfo* planeTexture, *planeDebugTexture;
 	GameObject* plane;
 	AnimationRenderingInfo* model1Animation;
 	QTimer* timer;
-	//int texture;
+	int texture;
 public:
 	War();
 	~War();

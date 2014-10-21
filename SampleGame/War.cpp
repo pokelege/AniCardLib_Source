@@ -28,7 +28,7 @@
 #include "DebugMemory.h"
 War::War() :cameraSource(0)
 {
-	
+	texture = 1;
 }
 War::~War()
 {
@@ -67,16 +67,17 @@ void War::initializeGL()
 	geometry->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 	geometry->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 	planeTexture = GraphicsTextureManager::globalTextureManager.addTexture( 0,0,0,0 );
-
+	planeDebugTexture = GraphicsTextureManager::globalTextureManager.addTexture( 0 , 0 , 0 , 1 );;
 	Renderable* renderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
-	renderable->initialize( 10 , 1 );
+	renderable->initialize( 10 , 2 );
 	renderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
 	renderable->geometryInfo = geometry;
 	renderable->shaderInfo = shader;
 	renderable->alphaBlendingEnabled = false;
 	renderable->culling = CT_NONE;
 	renderable->addTexture( planeTexture );
-
+	renderable->addTexture( planeDebugTexture );
+	renderable->setRenderableUniform( "debug" , PT_INT , &texture );
 	plane = GameObjectManager::globalGameObjectManager.addGameObject();
 	plane->addComponent( renderable );
 	plane->scale = glm::vec3( 10 , 10 , 10 );
@@ -155,6 +156,16 @@ void War::paintGL()
 			cameraSource->fetcher->finishedUsing();
 		}
 	}
+
+	unsigned char* pictureData = 0;
+	long width;
+	long height;
+	if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
+	{
+		GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
+		ARMarkerDetector::global.finishedUsing();
+	}
+
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
 }
 void War::setCameraSource(WebCamSource* webcam)

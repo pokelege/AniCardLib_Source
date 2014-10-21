@@ -44,18 +44,24 @@ struct Quad
 
 class ANICARDLIB_SHARED ARMarkerDetector
 {
-	long width , height;
-	unsigned char* copiedPictureInstance;
 	unsigned char* grayscaleImage;
 	float* gradientDirection;
 	float* gradientIntensity;
 	std::future<void>* runningThread;
-	ARMarkerDetector() : copiedPictureInstance(0), grayscaleImage(0), gradientIntensity(0), runningThread(0), gradientDirection(0), width(0), height(0) {}
+	unsigned int numUsing;
+	bool canGrab;
+
+	long width , height;
+	unsigned char* copiedPictureInstance;
+
+	ARMarkerDetector() : copiedPictureInstance(0), grayscaleImage(0), gradientIntensity(0), runningThread(0), gradientDirection(0), width(0), height(0), canGrab(false), numUsing(0) {}
 	void findLines(std::vector<Line>& linesToAdd );
 	std::vector<Line> findLinesOnRegion(long x , long y , long width , long height);
-	void _findCard();
+	void _findCard( );
 	bool findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index );
 public:
 	void findCard( PictureFetcher* picture );
+	bool getPicture( unsigned char** bytes , long* width = 0 , long* height = 0 );
+	bool finishedUsing();
 	static ARMarkerDetector global;
 };

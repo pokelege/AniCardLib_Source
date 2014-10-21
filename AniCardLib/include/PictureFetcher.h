@@ -4,13 +4,14 @@ class ANICARDLIB_SHARED PictureFetcher : public ISampleGrabberCB
 {
 	AM_MEDIA_TYPE mediaType;
 	unsigned char* picture;
-	long bufferLength;
+	
 	long width;
 	long height;
 	double SampleTime;
 	unsigned int numUsing;
 	bool canGrab;
 public:
+	long bufferLength;
 	PictureFetcher( AM_MEDIA_TYPE mediaType );
 	~PictureFetcher();
 	bool getPicture( unsigned char** bytes , long* width = 0 , long* height = 0 );
