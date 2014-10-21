@@ -451,21 +451,21 @@ void ARMarkerDetector::_findCard( )
 		}
 	}
 
-	//std::cout << "num lines " << theLines.size() << std::endl;
-	//std::cout << "num quads " << quadResults.size() << std::endl;
-	//std::cout << "full algoTime " << c.Stop() << std::endl;
+	std::cout << "num lines " << theLines.size() << std::endl;
+	std::cout << "num quads " << quadResults.size() << std::endl;
+	std::cout << "full algoTime " << c.Stop() << std::endl;
 }
 
 bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index )
 {
-	if ( index > 1 ) std::cout << "highindex " << index << std::endl;
+	//if ( index > 1 ) std::cout << "highindex " << index << std::endl;
 	//float angleThreshold = 15;
 	float threshold = ((float)(width + height) / 2.0f) * 0.01f;
 	//std::cout << threshold << std::endl;
 	if ( index == 4 )
 	{
 		float length = glm::length( glm::vec2(quadToEdit.line[3]->end) - glm::vec2(quadToEdit.line[0]->start) );
-		std::cout << (length ) << std::endl;
+		//std::cout << (length ) << std::endl;
 		return length <= threshold;
 	}
 	bool found = false;
@@ -593,32 +593,32 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 	}
 
 	////debug
-	{
-		while ( numUsing ) std::cout << numUsing << std::endl;
-		canGrab = false;
+	//{
+	//	while ( numUsing ) std::cout << numUsing << std::endl;
+	//	canGrab = false;
 
-		for ( unsigned int i = 0; i < edgels.size(); ++i )
-		{
-			std::cout << edgels[i].edgel.pos.y << std::endl;
-			std::cout << edgels[i].edgel.pos.x << std::endl;
-			unsigned long iOffset = ( unsigned long ) ( ( edgels[i].edgel.pos.y * 4 * this->width ) + ( edgels[i].edgel.pos.x * 4 ) );
-				copiedPictureInstance[iOffset] = ( unsigned char ) 255;
-				copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
-				copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
-		}
-		canGrab = true;
-	}
+	//	for ( unsigned int i = 0; i < edgels.size(); ++i )
+	//	{
+	//		std::cout << edgels[i].edgel.pos.y << std::endl;
+	//		std::cout << edgels[i].edgel.pos.x << std::endl;
+	//		unsigned long iOffset = ( unsigned long ) ( ( edgels[i].edgel.pos.y * 4 * this->width ) + ( edgels[i].edgel.pos.x * 4 ) );
+	//			copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+	//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
+	//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
+	//	}
+	//	canGrab = true;
+	//}
 
-	float angleThreshold = 1.0f;
-	float maxDistance = 3;
-	unsigned int maxIterations = (unsigned int)(1.75f * (height * width));
-	unsigned int minNumEdgels = 5;
+	float angleThreshold = 15.0f;
+	float maxDistance = ((float)(width + height) / 2.0f) * 0.01f;;
+	unsigned int maxIterations = (unsigned int)(2 * (height * width));
+	unsigned int minNumEdgels = 3;
 
 	std::vector<Line> tempLines;
 
 	for ( unsigned int currentIteration = 0; edgels.size() >= minNumEdgels && currentIteration < maxIterations; ++currentIteration )
 	{
-		int maxSubIteration = edgels.size();
+		int maxSubIteration = edgels.size() * 2;
 		bool found = false;
 		EdgelInList* e1 = 0 , *e2 = 0;
 		for ( int currentSubIteration = 0; currentSubIteration < maxSubIteration && !found; ++currentSubIteration )
@@ -661,13 +661,68 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 			if ( distanceFromLine > maxDistance ) continue;
 			supportedEdgels.push_back( test );
 		}
+		//debug
+		//{
+		//	while ( numUsing ) std::cout << numUsing << std::endl;
+		//	canGrab = false;
 
+		//	for ( unsigned int i = 0; i < supportedEdgels.size(); ++i )
+		//	{
+		//		std::cout << supportedEdgels[i]->edgel.pos.y << std::endl;
+		//		std::cout << supportedEdgels[i]->edgel.pos.x << std::endl;
+		//		unsigned long iOffset = ( unsigned long ) ( ( supportedEdgels[i]->edgel.pos.y * 4 * this->width ) + ( supportedEdgels[i]->edgel.pos.x * 4 ) );
+		//			copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+		//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
+		//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
+		//	}
+		//	canGrab = true;
+		//}
 		if ( supportedEdgels.size() < minNumEdgels ) continue;
 		
 		Line line;
 		line.start = e1->edgel.pos;
 		line.end = e2->edgel.pos;
 		line.angle = slopeAngle;
+
+		////debug
+		//{
+		//	while ( numUsing ) std::cout << numUsing << std::endl;
+		//	canGrab = false;
+
+		//	for ( unsigned int i = 0; i < tempLines.size(); ++i )
+		//	{
+		//		glm::vec2 normalized = glm::normalize( glm::vec2( line.end ) - glm::vec2( line.start ) );
+		//		bool extendable = true;
+		//		glm::vec2 testPixel = glm::vec2( line.start );
+		//		glm::ivec2 lastPixel = line.start;
+		//		unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+		//		//std::cout << lastPixel.y << std::endl;
+		//		//std::cout << lastPixel.x << std::endl;
+		//		copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+		//		copiedPictureInstance[iOffset+1] = ( unsigned char ) 0;
+		//		copiedPictureInstance[iOffset+2] = ( unsigned char ) 0;
+		//		while ( glm::ivec2( testPixel ) == lastPixel )
+		//		{
+		//			testPixel += normalized;
+		//		}
+		//		lastPixel = glm::ivec2( testPixel );
+		//		while ( extendable && glm::length( testPixel - glm::vec2( line.start ) ) <= glm::length( glm::vec2( line.end ) - glm::vec2( line.start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+		//		{
+		//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+		//			copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+		//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
+		//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
+		//			while ( glm::ivec2( testPixel ) == lastPixel )
+		//			{
+		//				testPixel += normalized;
+		//			}
+		//			lastPixel = glm::ivec2( testPixel );
+		//		}
+		//	}
+		//	canGrab = true;
+		//}
+
+
 		//if(slopeAngle < 0) std::cout << slopeAngle << std::endl;
 		//make better deletion
 		e1->deletion = true;
@@ -699,6 +754,44 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 		}
 		tempLines.push_back( line );
 		//std::cout << glm::length( glm::vec2( line.start ) - glm::vec2( line.end ) ) << std::endl;
+
+		////debug
+		//{
+		//	while ( numUsing ) std::cout << numUsing << std::endl;
+		//	canGrab = false;
+
+		//	for ( unsigned int i = 0; i < tempLines.size(); ++i )
+		//	{
+		//		glm::vec2 normalized = glm::normalize( glm::vec2( line.end ) - glm::vec2( line.start ) );
+		//		bool extendable = true;
+		//		glm::vec2 testPixel = glm::vec2( line.start );
+		//		glm::ivec2 lastPixel = line.start;
+		//		unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+		//		//std::cout << lastPixel.y << std::endl;
+		//		//std::cout << lastPixel.x << std::endl;
+		//		copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+		//		copiedPictureInstance[iOffset+1] = ( unsigned char ) 0;
+		//		copiedPictureInstance[iOffset+2] = ( unsigned char ) 0;
+		//		while ( glm::ivec2( testPixel ) == lastPixel )
+		//		{
+		//			testPixel += normalized;
+		//		}
+		//		lastPixel = glm::ivec2( testPixel );
+		//		while ( extendable && glm::length( testPixel - glm::vec2( line.start ) ) <= glm::length( glm::vec2( line.end ) - glm::vec2( line.start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+		//		{
+		//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+		//			copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+		//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
+		//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
+		//			while ( glm::ivec2( testPixel ) == lastPixel )
+		//			{
+		//				testPixel += normalized;
+		//			}
+		//			lastPixel = glm::ivec2( testPixel );
+		//		}
+		//	}
+		//	canGrab = true;
+		//}
 	}
 
 	//if(tempLines.size()) std::cout << "before " << tempLines.size() << std::endl;
@@ -717,10 +810,11 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 				lineStart = tempLine;
 			}
 
-			glm::ivec2 connectingLineTest = lineEnd->start - lineStart->end;
-			float connectingLineAngleTest = ( atan2f( ( float ) -connectingLineTest.y , ( float ) connectingLineTest.x ) * 180 ) / ( float ) M_PI;
+			glm::vec2 connectingLineTest = glm::vec2(lineEnd->start) - glm::vec2(lineStart->end);
+			float connectingLineAngleTest = ( atan2f( -connectingLineTest.y , connectingLineTest.x ) * 180 ) / ( float ) M_PI;
 			if ( connectingLineAngleTest < 0 ) connectingLineAngleTest += 360;
-			if ( abs( connectingLineAngleTest - lineStart->angle ) > angleThreshold || abs( connectingLineAngleTest - lineEnd->angle ) > angleThreshold ) continue;
+			float angleAverage = ( lineStart->angle + lineEnd->angle ) / 2;
+			if ( abs( connectingLineAngleTest - angleAverage ) > angleThreshold ) continue;
 			
 			//must check if disconnecting later
 			glm::vec2 connectingLineTestNormal = glm::normalize( glm::vec2(connectingLineTest) );
@@ -732,13 +826,13 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 				currentPosToCheck += connectingLineTestNormal;
 				if ( glm::ivec2( currentPosToCheck ) == lastPosToCheck ) continue;
 				lastPosToCheck = glm::ivec2( currentPosToCheck );
-				unsigned long imageIndex = ( unsigned long ) ( ( lastPosToCheck.y ) * this->width + ( lastPosToCheck.x ) );
-				compatible = ( abs( gradientDirection[imageIndex] - lineStart->angle ) <= angleThreshold || abs( gradientDirection[imageIndex] - lineEnd->angle ) <= angleThreshold );
+				unsigned long imageIndex = ( unsigned long ) ( ( lastPosToCheck.y  * this->width) + ( lastPosToCheck.x ) );
+				compatible = ( abs( gradientDirection[imageIndex] - angleAverage ) <= angleThreshold );
 			}
 			if ( !compatible ) continue;
-			glm::ivec2 newLineAngleVec = lineEnd->end - lineStart->start;
-			float newLineAngle = (atan2f( ( float ) -newLineAngleVec.y , ( float ) newLineAngleVec.x ) * 180 ) / ( float ) M_PI;
-			if ( newLineAngle <=0 ) newLineAngle += 360;
+			glm::vec2 newLineAngleVec = glm::vec2(lineEnd->end) - glm::vec2(lineStart->start);
+			float newLineAngle = (atan2f( -newLineAngleVec.y , newLineAngleVec.x ) * 180 ) / ( float ) M_PI;
+			if ( newLineAngle < 0 ) newLineAngle += 360;
 			lineToConnect->start = lineStart->start;
 			lineToConnect->end = lineEnd->end;
 			lineToConnect->angle = newLineAngle;
@@ -763,12 +857,12 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 	//		bool extendable = true;
 	//		glm::vec2 testPixel = glm::vec2( tempLines[i].start );
 	//		glm::ivec2 lastPixel = tempLines[i].start;
-	//		//unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+	//		unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
 	//		//std::cout << lastPixel.y << std::endl;
 	//		//std::cout << lastPixel.x << std::endl;
-	//		//copiedPictureInstance[iOffset] = ( unsigned char ) 255;
-	//		//copiedPictureInstance[iOffset+1] = ( unsigned char ) 0;
-	//		//copiedPictureInstance[iOffset+2] = ( unsigned char ) 0;
+	//		copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+	//		copiedPictureInstance[iOffset+1] = ( unsigned char ) 0;
+	//		copiedPictureInstance[iOffset+2] = ( unsigned char ) 0;
 	//		while ( glm::ivec2( testPixel ) == lastPixel )
 	//		{
 	//			testPixel += normalized;
@@ -786,6 +880,10 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 	//			}
 	//			lastPixel = glm::ivec2( testPixel );
 	//		}
+	//		iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+	//		copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+	//		copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
+	//		copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
 	//	}
 	//	canGrab = true;
 	//}
