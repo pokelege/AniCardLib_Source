@@ -152,7 +152,7 @@ void War::paintGL()
 		if ( cameraSource->fetcher->getPicture(&pictureData, &width, &height) )
 		{
 			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) pictureData, width , height , 0 );
-			plane->scale = 0.01f * glm::vec3( width , height , 1 );
+			plane->scale = 0.025f * glm::vec3( width , -height , 1 );
 			cameraSource->fetcher->finishedUsing();
 		}
 	}
