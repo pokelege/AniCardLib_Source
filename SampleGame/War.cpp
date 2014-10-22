@@ -88,7 +88,7 @@ void War::initializeGL()
 	camera->FOV = 60.0f;
 	camera->nearestObject = 0.01f;
 	GameObject* player = GameObjectManager::globalGameObjectManager.addGameObject();
-	player->translate = glm::vec3( 0 , 0 , 10 );
+	player->translate = glm::vec3( 0 , 0 , 25 );
 	camera->direction = glm::vec3( 0 , 0 , -1 );
 	player->addComponent( camera );
 
@@ -114,16 +114,17 @@ void War::initializeGL()
 
 	AudioController::globalAudioController.initialize();
 	AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
-	GameObject* model1 = GameObjectManager::globalGameObjectManager.addGameObject();
+	model1 = GameObjectManager::globalGameObjectManager.addGameObject();
 	model1->addComponent( model1Renderable );
 	model1->addComponent( model1Animation );
 	model1->rotate = glm::vec3( 90 , 90, 0 );
-	model1->translate =  glm::vec3(-5 , 0 , 0) ;
+	model1->active = false;
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
 }
-
+static int fails = 0;
+static int maxFails = 100;
 void War::update()
 {
 	WindowInfo::width = width();
@@ -132,6 +133,23 @@ void War::update()
 	if ( cameraSource )
 	{
 		ARMarkerDetector::global.findCard( cameraSource->fetcher );
+	}
+	std::vector<glm::vec2>* list = 0;
+	if ( ARMarkerDetector::global.getPositions( &list ) )
+	{
+		if ( list && list->size() )
+		{
+			fails = 0;
+			glm::vec3 characterPos( (list->at( 0 ).x * plane->scale.x)  / 2, (list->at( 0 ).y * plane->scale.y) / 2 , 0 );
+			model1->translate = characterPos;
+			model1->active = true;
+		}
+		else if(model1->active) fails++;
+		if ( model1->active && fails >= maxFails )
+		{
+			model1->active = false;
+		}
+		ARMarkerDetector::global.finishedUsingPos();
 	}
 	QPoint point = cursor().pos();
 	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( point.x() , point.y() ) );
@@ -152,7 +170,7 @@ void War::paintGL()
 		if ( cameraSource->fetcher->getPicture(&pictureData, &width, &height) )
 		{
 			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) pictureData, width , height , 0 );
-			plane->scale = 0.025f * glm::vec3( width , -height , 1 );
+			plane->scale = 0.025f * glm::vec3( width , height , 1 );
 			cameraSource->fetcher->finishedUsing();
 		}
 	}

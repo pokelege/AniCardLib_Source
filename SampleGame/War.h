@@ -16,6 +16,7 @@ class War : public QGLWidget
 	GameObject* plane;
 	AnimationRenderingInfo* model1Animation;
 	QTimer* timer;
+	GameObject* model1;
 	int texture;
 public:
 	War();

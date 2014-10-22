@@ -39,7 +39,7 @@ struct ConstructingQuad
 
 struct Quad
 {
-	glm::ivec2 pt1 , pt2 , pt3 , pt4;
+	glm::vec2 pt[4];
 };
 
 class ANICARDLIB_SHARED ARMarkerDetector
@@ -54,6 +54,10 @@ class ANICARDLIB_SHARED ARMarkerDetector
 	long width , height;
 	unsigned char* copiedPictureInstance;
 
+	bool canGrabPositions;
+	unsigned int numUsingPos;
+	std::vector<glm::vec2> toSend;
+
 	ARMarkerDetector() : copiedPictureInstance(0), grayscaleImage(0), gradientIntensity(0), runningThread(0), gradientDirection(0), width(0), height(0), canGrab(false), numUsing(0) {}
 	void findLines(std::vector<Line>& linesToAdd );
 	std::vector<Line> findLinesOnRegion(long x , long y , long width , long height);
@@ -63,5 +67,7 @@ public:
 	void findCard( PictureFetcher* picture );
 	bool getPicture( unsigned char** bytes , long* width = 0 , long* height = 0 );
 	bool finishedUsing();
+	bool getPositions( std::vector<glm::vec2>** bytes);
+	bool finishedUsingPos();
 	static ARMarkerDetector global;
 };
