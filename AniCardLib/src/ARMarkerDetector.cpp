@@ -498,6 +498,8 @@ void ARMarkerDetector::_findCard( )
 		if ( !foundQuad ) constructing = false;
 		else
 		{
+
+
 			Quad quadResult;
 
 			glm::vec2 normal = glm::normalize( glm::vec2(quad.line[0]->end - quad.line[0]->start) );
