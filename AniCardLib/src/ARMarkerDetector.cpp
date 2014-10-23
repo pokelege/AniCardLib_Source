@@ -446,14 +446,14 @@ void ARMarkerDetector::_findCard( )
 
 	//	for ( unsigned int i = 0; i < theLines.size(); ++i )
 	//	{
-	//		//if ( theLines[i].angle > 260 && theLines[i].angle < 290 )
-	//		//{
+	//		if ( theLines[i].angle > 260 && theLines[i].angle < 290 )
+	//		{
 	//			glm::vec2 normalized = glm::normalize( glm::vec2( theLines[i].end ) - glm::vec2( theLines[i].start ) );
 	//			glm::vec2 testPixel = glm::vec2( theLines[i].start );
 	//			glm::ivec2 lastPixel = theLines[i].start;
 	//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-	//			//std::cout << lastPixel.y << std::endl;
-	//			//std::cout << lastPixel.x << std::endl;
+	//			std::cout << lastPixel.y << std::endl;
+	//			std::cout << lastPixel.x << std::endl;
 	//			copiedPictureInstance[iOffset] = ( unsigned char ) 0;
 	//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
 	//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 255;
@@ -483,7 +483,7 @@ void ARMarkerDetector::_findCard( )
 	//			copiedPictureInstance[iOffset] = ( unsigned char ) 0;
 	//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 255;
 	//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
-	//		//}
+	//		}
 	//	}
 	//	canGrab = true;
 	//}
@@ -635,7 +635,7 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 	{
 		//std::cout << "highindex " << index << std::endl;
 	}
-	float angleThreshold = 15;
+	float angleThreshold = 3;
 	float threshold = ((float)(width + height) / 2.0f) * 0.015f;
 	//std::cout << threshold << std::endl;
 	if ( index == 4 )
@@ -645,7 +645,18 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 		float lineToCompareAngle = quadToEdit.line[3]->angle + 90;
 		if ( lineToCompareAngle >= 360 ) lineToCompareAngle -= 360;
 		if ( lineToCompareAngle < 0 ) lineToCompareAngle += 360;
-		return length <= threshold && abs( ( lineToCompareAngle ) -quadToEdit.line[0]->angle ) <= angleThreshold;
+		bool found = length <= threshold;//&& abs( ( lineToCompareAngle ) -quadToEdit.line[0]->angle ) <= angleThreshold;
+		// guess 3 corners
+		if ( !found && abs( ( lineToCompareAngle ) -quadToEdit.line[0]->angle ) <= angleThreshold )
+		{
+			glm::vec2 normal = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) );
+			glm::vec2 lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[3]->start );
+			float theDot = glm::dot( lineToDot , normal );
+			quadToEdit.line[3]->end = glm::ivec2( theDot * normal ) + quadToEdit.line[3]->start;
+			quadToEdit.line[0]->start = quadToEdit.line[3]->end;
+			return true;
+		}
+		return found;
 	}
 	bool found = false;
 	for ( unsigned int i = 0; i < lines.size() && !found; ++i )

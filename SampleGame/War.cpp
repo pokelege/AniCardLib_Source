@@ -113,7 +113,7 @@ void War::initializeGL()
 	
 
 	AudioController::globalAudioController.initialize();
-	AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
+	//AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
 	model1 = GameObjectManager::globalGameObjectManager.addGameObject();
 	model1->addComponent( model1Renderable );
 	model1->addComponent( model1Animation );
