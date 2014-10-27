@@ -52,7 +52,7 @@ void Setup::selectedCamera(int selection)
 	resolutionSelection->clear();
 	for ( unsigned int i = 0; i < resolutions.size(); ++i )
 	{
-		resolutionSelection->addItem( QString::number( resolutions[i].caps.MaxOutputSize.cx ) + QString::number( resolutions[i].caps.MaxOutputSize.cy ) );
+		resolutionSelection->addItem( QString::number( resolutions[i].caps.MaxOutputSize.cx ) + "x" + QString::number( resolutions[i].caps.MaxOutputSize.cy ) );
 	}
 }
 

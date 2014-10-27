@@ -7,6 +7,8 @@
 #include <iostream>
 #include <Clock.h>
 #include <chrono>
+#include <MathHelpers.h>
+#include <MarkerPack.h>
 ARMarkerDetector ARMarkerDetector::global;
 using namespace AniCardLib;
 
@@ -44,6 +46,23 @@ bool ARMarkerDetector::getPositions( std::vector<glm::vec2>** bytes )
 bool ARMarkerDetector::finishedUsingPos()
 {
 	if ( numUsingPos > 0 ) { --numUsingPos; return true; }
+	else return false;
+}
+
+bool ARMarkerDetector::getMatrices( std::vector<glm::mat4>** bytes )
+{
+	if ( canGrabMatrices && bytes )
+	{
+		++numUsingMat;
+		//std::cout << numUsing << std::endl;
+		*bytes = &matrices;
+		return true;
+	}
+	return false;
+}
+bool ARMarkerDetector::finishedUsingMat()
+{
+	if ( numUsingMat > 0 ) { --numUsingMat; return true; }
 	else return false;
 }
 
@@ -494,12 +513,13 @@ void ARMarkerDetector::_findCard( )
 	while ( constructing && theLines.size() >=4 )
 	{
 		ConstructingQuad quad;
+		
 		bool foundQuad = findQuad( quad , theLines , 0 );
 		if ( !foundQuad ) constructing = false;
 		else
 		{
+			
 			Quad quadResult;
-
 			glm::vec2 normal = glm::normalize( glm::vec2(quad.line[0]->end - quad.line[0]->start) );
 			glm::vec2 lineToDot = glm::vec2( quad.line[1]->start - quad.line[0]->start );
 			float theDot = glm::dot( lineToDot , normal );
@@ -519,8 +539,78 @@ void ARMarkerDetector::_findCard( )
 			lineToDot = glm::vec2( quad.line[0]->start - quad.line[3]->start );
 			theDot = glm::dot( lineToDot , normal );
 			quadResult.pt[3] = glm::ivec2( theDot * normal ) + quad.line[3]->start;
-			quadResults.push_back( quadResult );
 
+			MarkerPack::global.matchMarker( quadResult , grayscaleImage, width, height );
+			//float* vectorMult = new float[8];
+			//vectorMult[0] = ( float ) ( quadResult.pt[0].x - 618.776f ) / 893.48f;
+			//vectorMult[1] = ( float ) ( quadResult.pt[1].x - 618.776f) / 893.48f ;
+			//vectorMult[2] = ( float ) ( quadResult.pt[2].x - 618.776f) / 893.48f ;
+			//vectorMult[3] = ( float ) ( quadResult.pt[3].x - 618.776f) / 893.48f ;
+			//vectorMult[4] = ( float ) ( quadResult.pt[0].y - 375.085f ) / 897.393f;
+			//vectorMult[5] = ( float ) ( quadResult.pt[1].y - 375.085f ) / 897.393f;
+			//vectorMult[6] = ( float ) ( quadResult.pt[2].y - 375.085f ) / 897.393f;
+			//vectorMult[7] = ( float ) ( quadResult.pt[3].y - 375.085f ) / 897.393f;
+
+			//float* matrix = new float[8 * 8];
+			//{
+			//	float prematrix[8][8] =
+			//	{
+			//		{ -0.01f , -0.01f , 1 , 0 , 0 , 0 , -( float ) ( vectorMult[0] ) * -0.01f , -( float ) ( vectorMult[0] ) * -0.01f } ,
+			//		{ 0.01f , -0.01f , 1 , 0 , 0 , 0 , -( float ) ( vectorMult[1] ) * 0.01f , -( float ) ( vectorMult[1] ) * -0.01f } ,
+			//		{ 0.01f , 0.01f , 1 , 0 , 0 , 0 , -( float ) ( vectorMult[2] ) * 0.01f , -( float ) ( vectorMult[2] ) * 0.01f } ,
+			//		{ -0.01f , 0.01f, 1 , 0 , 0 , 0 , -( float ) ( vectorMult[3] ) * -0.01f , -( float ) ( vectorMult[3] ) * 0.01f } ,
+
+			//		{ 0 , 0 , 0 , -0.01f , -0.01f , 1 , -( float ) ( vectorMult[4] ) * -0.01f , -( float ) ( vectorMult[4] ) * -0.01f } ,
+			//		{ 0 , 0 , 0 , 0.01f , -0.01f , 1 , -( float ) ( vectorMult[5] ) * 0.01f , -( float ) ( vectorMult[5] ) * -0.01f } ,
+			//		{ 0 , 0 , 0 , 0.01f , 0.01f , 1 , -( float ) ( vectorMult[6] ) * 0.01f , -( float ) ( vectorMult[6] ) * 0.01f } ,
+			//		{ 0 , 0 , 0 , -0.01f , 0.01f , 1 , -( float ) ( vectorMult[7] ) * -0.01f , -( float ) ( vectorMult[7] ) * 0.01f } ,
+			//	};
+			//	for ( unsigned int j = 0; j < 8; ++j )
+			//	{
+			//		for ( unsigned int i = 0; i < 8; ++i )
+			//		{
+			//			matrix[( j * 8 ) + i] = prematrix[j][i];
+			//			//if ( ( j * 8 ) + i >= 8 * 8 ) std::cout << "went out" << std::endl;
+			//		}
+			//	}
+			//}
+			//
+			////std::cout << quadResult.pt[0].x - 595.164f << std::endl;
+			//float determinant = MathHelpers::Determinant( matrix , 8 );
+			////std::cout << determinant << std::endl;
+			//if ( determinant != 0 )
+			//{
+			//	MathHelpers::preAdj( matrix , 8 );
+			//	MathHelpers::Transpose( matrix , 8 );
+			//	MathHelpers::Multiply( matrix , 1.0f / determinant , 8 );
+			//	MathHelpers::MultiplyVector( matrix , vectorMult , 8 );
+			//	//std::cout << "{" << vectorMult[0] << "," << vectorMult[4] << "}" << std::endl;
+			//	//std::cout << "{" << vectorMult[1] << "," << vectorMult[5] << "}" << std::endl;
+			//	//std::cout << "{" << vectorMult[2] << "," << vectorMult[6] << "}" << std::endl;
+			//	//std::cout << "{" << vectorMult[3] << "," << vectorMult[7] << "}" << std::endl;
+
+			//	float a = ( vectorMult[2] * vectorMult[5] ) - ( vectorMult[4] * vectorMult[3] );
+			//	float b = ( vectorMult[0] * vectorMult[5] ) - ( vectorMult[1] * vectorMult[4] );
+			//	float c = ( vectorMult[0] * vectorMult[3] ) - ( vectorMult[2] * vectorMult[1] );
+			//	//std::cout << "{" << a << "," << b << "," << c << "}" << std::endl;
+			//	glm::vec4 translateVector;
+			//	translateVector.z = -powf( 1.0f / ( ( a * a ) + ( b* b ) + ( c* c ) ) , 0.25f );
+			//	std::cout << translateVector.z << std::endl;
+			//	translateVector.x = -vectorMult[6] * translateVector.z;
+			//	translateVector.y = -vectorMult[7] * translateVector.z;
+			//	translateVector.w = 1;
+			//	glm::vec4 row0( -vectorMult[0] * translateVector.z , -vectorMult[2] * translateVector.z , vectorMult[4] * translateVector.z, translateVector.x );
+			//	glm::vec4 row1( -vectorMult[1] * translateVector.z , -vectorMult[3] * translateVector.z , vectorMult[5] * translateVector.z,translateVector.y );
+			//	glm::vec4 row2 = glm::vec4( glm::cross( glm::vec3( row0 ) , glm::vec3( row1 ) ) , translateVector.z );
+			//	glm::mat4 theResultingMatrix( row0, row1 , row2 , glm::vec4(0,0,0,1) );
+			//	quadResult.transform = glm::transpose( theResultingMatrix );
+			//	glm::vec4 translated = glm::transpose( theResultingMatrix ) * glm::vec4( 0 , 0 , 0 , 1 );
+			//	//translated /= translated.w;
+			//	//std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
+			//}
+			//delete[] matrix;
+			//delete[] vectorMult;
+			quadResults.push_back( quadResult );
 			//debug
 			//{
 			//	while ( numUsing ) std::cout << numUsing << std::endl;
@@ -605,7 +695,10 @@ void ARMarkerDetector::_findCard( )
 
 	while ( numUsingPos );
 	canGrabPositions = false;
+	while ( numUsingMat );
+	canGrabMatrices = false;
 	toSend.clear();
+	matrices.clear();
 	for ( unsigned int i = 0; i < quadResults.size(); ++i )
 	{
 		glm::vec2 center;
@@ -618,9 +711,11 @@ void ARMarkerDetector::_findCard( )
 		center.x = ((center.x) * 2) - 1;
 		center.y = ( center.y / height);
 		center.y = ((center.y) * 2) - 1;
-		std::cout << center.y << std::endl;
+		//std::cout << center.y << std::endl;
 		toSend.push_back( center );
+		matrices.push_back( quadResults[i].transform );
 	}
+	canGrabMatrices = true;
 	canGrabPositions = true;
 
 	//std::cout << "num lines " << theLines.size() << std::endl;

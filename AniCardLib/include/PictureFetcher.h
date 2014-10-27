@@ -2,11 +2,13 @@
 #include <AniCardLibExportHeader.h>
 class ANICARDLIB_SHARED PictureFetcher : public ISampleGrabberCB
 {
+	friend class WebCamSource;
 	AM_MEDIA_TYPE mediaType;
 	unsigned char* picture;
 	
 	long width;
 	long height;
+	long focalLength;
 	double SampleTime;
 	unsigned int numUsing;
 	bool canGrab;

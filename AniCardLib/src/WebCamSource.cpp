@@ -4,6 +4,9 @@
 #include <dmodshow.h>
 #include <Dmoreg.h>
 #include <iostream>
+#include <vidcap.h>
+#include <ksmedia.h>
+#include <comdef.h>
 WebCamSource::WebCamSource() : selectedCamera(0)
 {
 
@@ -68,7 +71,31 @@ HRESULT WebCamSource::selectCamera( IMoniker& camera , std::vector<CameraConfigs
 
 		}
 	}
+	IKsTopologyInfo* iKInterface = 0;
+	selectedCamera->QueryInterface( __uuidof( IKsTopologyInfo ) , ( void** ) &iKInterface );
 
+	if ( iKInterface != 0 )
+	{
+		unsigned long numNodes = 0;
+		iKInterface->get_NumNodes( &numNodes );
+		for ( unsigned long i = 0; i < numNodes; ++i )
+		{
+			GUID interfaceType;
+			iKInterface->get_NodeType( i , &interfaceType );
+			if ( interfaceType == KSNODETYPE_VIDEO_CAMERA_TERMINAL )
+			{
+				ICameraControl* findingFocalLength = 0;
+				iKInterface->CreateNodeInstance( i , __uuidof( ICameraControl ) , ( void** ) &findingFocalLength );
+				if ( findingFocalLength )
+				{
+					long focalLength = 0 , set , set2;
+					HRESULT lol = findingFocalLength->get_FocalLengths( &focalLength , &set, &set2 );
+					_com_error err( lol );
+					std::cout << focalLength << std::endl;
+				}
+			}
+		}
+	}
 	return result;
 }
 

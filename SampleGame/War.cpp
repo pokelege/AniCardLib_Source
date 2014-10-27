@@ -25,6 +25,7 @@
 #include <Graphics\GraphicsTextureManager.h>
 #include <Audio\AudioController.h>
 #include <ARMarkerDetector.h>
+#include <MarkerPack.h>
 #include "DebugMemory.h"
 War::War() :cameraSource(0)
 {
@@ -81,7 +82,7 @@ void War::initializeGL()
 	plane = GameObjectManager::globalGameObjectManager.addGameObject();
 	plane->addComponent( renderable );
 	plane->scale = glm::vec3( 10 , 10 , 10 );
-
+	//renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &identity , 1 );
 	Camera* camera = GraphicsCameraManager::globalCameraManager.addCamera();
 	camera->initializeRenderManagers();
 	camera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );
@@ -108,7 +109,7 @@ void War::initializeGL()
 	model1Renderable->alphaBlendingEnabled = false;
 	model1Renderable->culling = CT_NONE;
 	model1Renderable->addTexture( diamondTexture );
-
+	model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
 	model1Animation = new AnimationRenderingInfo;
 	
 
@@ -117,8 +118,12 @@ void War::initializeGL()
 	model1 = GameObjectManager::globalGameObjectManager.addGameObject();
 	model1->addComponent( model1Renderable );
 	model1->addComponent( model1Animation );
-	model1->rotate = glm::vec3( 90 , 90, 0 );
+	//model1->rotate = glm::vec3( 90 , 90, 0 );
+	//model1->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
 	model1->active = false;
+	
+	MarkerPack::global.addMarker( "Textures/Cards/AD.png" );
+	MarkerPack::global.addMarker( "Textures/Cards/AS.png" );
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
@@ -134,14 +139,16 @@ void War::update()
 	{
 		ARMarkerDetector::global.findCard( cameraSource->fetcher );
 	}
-	std::vector<glm::vec2>* list = 0;
-	if ( ARMarkerDetector::global.getPositions( &list ) )
+	std::vector<glm::mat4>* list = 0;
+	if ( ARMarkerDetector::global.getMatrices( &list ) )
 	{
 		if ( list && list->size() )
 		{
 			fails = 0;
-			glm::vec3 characterPos( (list->at( 0 ).x * plane->scale.x)  / 2, (list->at( 0 ).y * plane->scale.y) / 2 , 0 );
-			model1->translate = characterPos;
+			transform = list->at( 0 );
+			//transform *= glm::inverse( transform );
+			//glm::vec3 characterPos( (list->at( 0 ).x * plane->scale.x)  / 2, (list->at( 0 ).y * plane->scale.y) / 2 , 0 );
+			//model1->translate = characterPos;
 			model1->active = true;
 		}
 		else if(model1->active) fails++;
@@ -149,7 +156,7 @@ void War::update()
 		{
 			model1->active = false;
 		}
-		ARMarkerDetector::global.finishedUsingPos();
+		ARMarkerDetector::global.finishedUsingMat();
 	}
 	QPoint point = cursor().pos();
 	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( point.x() , point.y() ) );
@@ -178,10 +185,10 @@ void War::paintGL()
 	unsigned char* pictureData = 0;
 	long width;
 	long height;
-	if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
+	if ( MarkerPack::global.getPicture( &pictureData , &width , &height ) )
 	{
 		GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
-		ARMarkerDetector::global.finishedUsing();
+		MarkerPack::global.finishedUsing();
 	}
 
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();

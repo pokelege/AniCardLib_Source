@@ -7,6 +7,7 @@ in layout(location=7) vec4 blendingWeight;
 uniform mat4 viewToProjection;
 uniform mat4 worldToView;
 uniform mat4 modelToWorld;
+uniform mat4 extraModelToWorld;
 uniform mat4 animationMatrices[100];
 out vec2 uvsend;
 out vec4 positions;
@@ -24,8 +25,8 @@ void main()
 	{
 		animatedPosition = vec4(position,1);
 	}
-	vec4 newPosition = modelToWorld * animatedPosition;
-	gl_Position = viewToProjection * worldToView * newPosition;
+	vec4 newPosition = animatedPosition;
+	gl_Position = viewToProjection * worldToView * modelToWorld * newPosition;
 	uvsend = uvs;
 	positions = newPosition;
 };
