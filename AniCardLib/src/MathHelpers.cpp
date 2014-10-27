@@ -1,5 +1,6 @@
 #include <MathHelpers.h>
-
+#include <Clock.h>
+#include <iostream>
 float MathHelpers::Determinant( float* m1 , int size )
 {
 	if ( size == 1 )
@@ -26,7 +27,6 @@ float MathHelpers::Determinant( float* m1 , int size )
 					{
 						temp[( l * ( size - 1 ) ) + j] = m1[( ( l + 1 ) * size ) + j + 1];
 					}
-					//if ( ( l * ( size - 1 ) ) + j >= ( size - 1 ) * ( size - 1 ) || (l * (size - 1 )) + j >= ( size - 1 ) * ( size - 1 ) ) std::cout << "went out" << std::endl;
 				}
 			}
 
@@ -47,6 +47,8 @@ float MathHelpers::Determinant( float* m1 , int size )
 
 float MathHelpers::cofactor( float* matrix , int size , int i , int j )
 {
+	AniCardLib::Clock c;
+	
 	float* gets = new float[( size - 1 )* ( size - 1 )];
 
 	for ( int b = 0; b < size - 1; b++ )
@@ -66,24 +68,34 @@ float MathHelpers::cofactor( float* matrix , int size , int i , int j )
 			gets[( b * ( size - 1 ) ) + a] = matrix[( y * size ) + x];
 		}
 	}
-
-
-	return powf( ( -1.0f ) , ( float ) i + ( float ) j ) * MathHelpers::Determinant( gets , size - 1 );
+	
+	
+	float toReturn = powf( ( -1.0f ) , ( float ) i + ( float ) j );
+	//c.Start();
+	toReturn *= MathHelpers::Determinant( gets , size - 1 );
+	//std::cout << "cofactor " << c.Stop() << std::endl;
+	return toReturn;
 }
 
 void MathHelpers::preAdj( float* matrix , int size )
 {
+	AniCardLib::Clock c;
+	//c.Start();
 	float* temp = new float[size * size];
 
 	for ( int j = 0; j < size; ++j )
 	{
 		for ( int i = 0; i < size; ++i )
 		{
+			//c.Start();
 			temp[( j* size ) + i] = cofactor( matrix , size , i , j );
+			//std::cout << "preAdj " << c.Stop() << std::endl;
 		}
 	}
+	//c.Start();
 	memcpy( matrix , temp , sizeof( float ) * ( size * size ) );
 	delete[] temp;
+	//std::cout << "preAdj " << c.Stop() << std::endl;
 }
 
 void MathHelpers::Transpose( float* m1 , int size )
