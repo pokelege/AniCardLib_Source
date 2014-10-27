@@ -21,12 +21,22 @@ class ANICARDLIB_SHARED MarkerPack
 		glm::vec2 pos[4];
 	};
 
+	struct FoundMarkerInfo
+	{
+		unsigned long dissimilarity;
+		unsigned int markerID;
+		glm::vec2 points[4];
+		float theAs[8];
+	};
+
 	std::vector<Marker> markers;
 	unsigned char* debugPicture;
 	long width , height;
 	unsigned int numUsing;
 	bool canGrab;
-	unsigned long compareWithMarker( CompareWithMarkerInfo info);
+	FoundMarkerInfo getMarkerCornerDissimilarity( CompareWithMarkerInfo info);
+	FoundMarkerInfo getMarkerDissimilarity( CompareWithMarkerInfo info );
+	FoundMarkerInfo getSmallestDissimilarity( CompareWithMarkerInfo info );
 public:
 	MarkerPack() : debugPicture( 0 ) {}
 	void addMarker( const char* file );

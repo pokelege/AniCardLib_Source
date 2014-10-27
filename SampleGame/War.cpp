@@ -122,8 +122,8 @@ void War::initializeGL()
 	//model1->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
 	model1->active = false;
 	
-	MarkerPack::global.addMarker( "Textures/Cards/AD.png" );
 	MarkerPack::global.addMarker( "Textures/Cards/AS.png" );
+	MarkerPack::global.addMarker( "Textures/Cards/AD.png" );
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
