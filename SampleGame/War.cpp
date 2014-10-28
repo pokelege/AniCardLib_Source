@@ -82,7 +82,7 @@ void War::initializeGL()
 	plane = GameObjectManager::globalGameObjectManager.addGameObject();
 	plane->addComponent( renderable );
 	plane->scale = glm::vec3( 10 , 10 , 10 );
-	renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &identity , 1 );
+	//renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &identity , 1 );
 	Camera* camera = GraphicsCameraManager::globalCameraManager.addCamera();
 	camera->initializeRenderManagers();
 	camera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );
@@ -119,7 +119,7 @@ void War::initializeGL()
 	model1->addComponent( model1Renderable );
 	model1->addComponent( model1Animation );
 	//model1->rotate = glm::vec3( 90 , 90, 0 );
-	//model1->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
+	model1->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
 	model1->active = false;
 	
 	MarkerPack::global.addMarker( "Textures/Cards/AS.png" );

@@ -26,7 +26,7 @@ void main()
 		animatedPosition = vec4(position,1);
 	}
 	vec4 newPosition = animatedPosition;
-	gl_Position = viewToProjection * worldToView * modelToWorld * extraModelToWorld * newPosition;
+	gl_Position = extraModelToWorld * modelToWorld  * newPosition;
 	uvsend = uvs;
 	positions = newPosition;
 };

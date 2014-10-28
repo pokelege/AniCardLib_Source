@@ -1,9 +1,11 @@
+#include <gtc\matrix_transform.hpp>
 #include <MarkerPack.h>
 #include <SOIL.h>
 #include <MathHelpers.h>
 #include <iostream>
 #include <future>
 #include <Clock.h>
+
 MarkerPack MarkerPack::global;
 
 bool MarkerPack::getPicture( unsigned char** bytes , long* width , long* height )
@@ -64,19 +66,20 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 
 	FoundMarkerInfo resultantMarker = getSmallestDissimilarity( quadInfo );
 
-	float markerWidth = ( float ) markers[0].width;
-	float markerHeight = ( float ) markers[0].height;
+	float markerWidth = (( float ) markers[0].width) / pictureWidth;
+	float markerHeight = (( float ) markers[0].height) / pictureHeight;
 	float* vectorMult = new float[8];
-	vectorMult[0] = ( float ) ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) / 1000.0f;
-	vectorMult[1] = ( float ) ( resultantMarker.points[1].x - ( pictureWidth / 2 ) ) / 1000.0f;
-	vectorMult[2] = ( float ) ( resultantMarker.points[2].x - ( pictureWidth / 2 ) ) / 1000.0f;
-	vectorMult[3] = ( float ) ( resultantMarker.points[3].x - ( pictureWidth / 2 ) ) / 1000.0f;
-	vectorMult[4] = ( float ) ( resultantMarker.points[0].y - ( pictureHeight / 2 ) ) / 1000.0f;
-	vectorMult[5] = ( float ) ( resultantMarker.points[1].y - ( pictureHeight / 2 ) ) / 1000.0f;
-	vectorMult[6] = ( float ) ( resultantMarker.points[2].y - ( pictureHeight / 2 ) ) / 1000.0f;
-	vectorMult[7] = ( float ) ( resultantMarker.points[3].y - ( pictureHeight / 2 ) ) / 1000.0f;
-
+	vectorMult[0] = ( float ) ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) / 2000.0f;
+	vectorMult[1] = ( float ) ( resultantMarker.points[1].x - ( pictureWidth / 2 ) ) / 2000.0f;
+	vectorMult[2] = ( float ) ( resultantMarker.points[2].x - ( pictureWidth / 2 ) ) / 2000.0f;
+	vectorMult[3] = ( float ) ( resultantMarker.points[3].x - ( pictureWidth / 2 ) ) / 2000.0f;
+	vectorMult[4] = ( float ) ( resultantMarker.points[0].y - ( pictureHeight / 2 ) ) / 2000.0f;
+	vectorMult[5] = ( float ) ( resultantMarker.points[1].y - ( pictureHeight / 2 ) ) / 2000.0f;
+	vectorMult[6] = ( float ) ( resultantMarker.points[2].y - ( pictureHeight / 2 ) ) / 2000.0f;
+	vectorMult[7] = ( float ) ( resultantMarker.points[3].y - ( pictureHeight / 2 ) ) / 2000.0f;
+	//std::cout << resultantMarker.points[0].x << " - " << pictureWidth / 2 << " = " << ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) << std::endl;
 	float* matrix = new float[8 * 8];
+	//std::cout << ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) << " / " << ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) / 1000.0f << std::endl;
 	{
 
 		float prematrix[8][8] =
@@ -114,17 +117,20 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 		float b = ( vectorMult[0] * vectorMult[5] ) - ( vectorMult[1] * vectorMult[4] );
 		float c = ( vectorMult[0] * vectorMult[3] ) - ( vectorMult[2] * vectorMult[1] );
 		//std::cout << "{" << a << "," << b << "," << c << "}" << std::endl;
-		glm::vec4 translateVector;
+		//std::cout << ( ( a * a ) + ( b* b ) + ( c* c ) ) << std::endl;
+		//std::cout << 1.0f / ( ( a * a ) + ( b* b ) + ( c* c ) ) << std::endl;
+		//std::cout << -powf( 1.0f / ( ( a * a ) + ( b* b ) + ( c* c ) ) , 0.25f ) << std::endl;
+		glm::vec3 translateVector;
 		translateVector.z = -powf( 1.0f / ( ( a * a ) + ( b* b ) + ( c* c ) ) , 0.25f );
 		//std::cout << translateVector.z << std::endl;
+		std::cout << vectorMult[6] << std::endl;
 		translateVector.x = -vectorMult[6] * translateVector.z;
 		translateVector.y = -vectorMult[7] * translateVector.z;
-		translateVector.w = 1;
-		glm::vec4 row0( -vectorMult[0] * translateVector.z , -vectorMult[2] * translateVector.z , vectorMult[4] * translateVector.z , translateVector.x );
-		glm::vec4 row1( -vectorMult[1] * translateVector.z , -vectorMult[3] * translateVector.z , vectorMult[5] * translateVector.z , translateVector.y );
-		glm::vec4 row2 = glm::vec4( glm::cross( glm::vec3( row0 ) , glm::vec3( row1 ) ) , translateVector.z );
+		glm::vec4 row0( -vectorMult[0] * translateVector.z , -vectorMult[2] * translateVector.z , vectorMult[4] * translateVector.z , 0 );
+		glm::vec4 row1( -vectorMult[1] * translateVector.z , -vectorMult[3] * translateVector.z , vectorMult[5] * translateVector.z , 0 );
+		glm::vec4 row2 = glm::vec4( glm::cross( glm::vec3( row1 ) , glm::vec3( row0 ) ) , 0 );
 		glm::mat4 theResultingMatrix( row0 , row1 , row2 , glm::vec4( 0 , 0 , 0 , 1 ) );
-		transform = glm::transpose( theResultingMatrix );
+		transform = glm::translate( glm::mat4() , translateVector ) * glm::transpose(theResultingMatrix);
 		quad.transform = transform;
 		//translated /= translated.w;
 		std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
