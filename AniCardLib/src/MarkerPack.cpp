@@ -81,15 +81,15 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 
 		float prematrix[8][8] =
 		{
-			{ 0 , 0 , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[0].x ) * 0 , -( float ) ( resultantMarker.points[0].x ) * 0 } ,
-			{ 0 , markerHeight , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[1].x ) * 0 , -( float ) ( resultantMarker.points[1].x ) * markerHeight } ,
-			{ markerWidth , markerHeight , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[2].x ) *markerWidth , -( float ) ( resultantMarker.points[2].x ) * markerHeight } ,
-			{ markerWidth , 0 , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[3].x ) * markerWidth , -( float ) ( resultantMarker.points[3].x ) * 0 } ,
+			{ 0 , 0 , 1 , 0 , 0 , 0 , -( float ) ( vectorMult[0] ) * 0 , -( float ) ( vectorMult[0] ) * 0 } ,
+			{ 0 , markerHeight , 1 , 0 , 0 , 0 , -( float ) ( vectorMult[1] ) * 0 , -( float ) ( vectorMult[1] ) * markerHeight } ,
+			{ markerWidth , markerHeight , 1 , 0 , 0 , 0 , -( float ) ( vectorMult[2] ) *markerWidth , -( float ) ( vectorMult[2] ) * markerHeight } ,
+			{ markerWidth , 0 , 1 , 0 , 0 , 0 , -( float ) ( vectorMult[3] ) * markerWidth , -( float ) ( vectorMult[3] ) * 0 } ,
 
-			{ 0 , 0 , 0 , 0 , 0 , 1 , -( float ) ( resultantMarker.points[0].y ) * 0 , -( float ) ( resultantMarker.points[0].y ) * 0 } ,
-			{ 0 , 0 , 0 , 0 , markerHeight , 1 , -( float ) ( resultantMarker.points[1].y ) * 0 , -( float ) ( resultantMarker.points[1].y ) * markerHeight } ,
-			{ 0 , 0 , 0 , markerWidth , markerHeight , 1 , -( float ) ( resultantMarker.points[2].y ) * markerWidth , -( float ) ( resultantMarker.points[2].y ) * markerHeight } ,
-			{ 0 , 0 , 0 , markerWidth , 0 , 1 , -( float ) ( resultantMarker.points[3].y ) * markerWidth , -( float ) ( resultantMarker.points[3].y ) * 0 } ,
+			{ 0 , 0 , 0 , 0 , 0 , 1 , -( float ) ( vectorMult[4] ) * 0 , -( float ) ( vectorMult[4] ) * 0 } ,
+			{ 0 , 0 , 0 , 0 , markerHeight , 1 , -( float ) ( vectorMult[5] ) * 0 , -( float ) ( vectorMult[5] ) * markerHeight } ,
+			{ 0 , 0 , 0 , markerWidth , markerHeight , 1 , -( float ) ( vectorMult[6] ) * markerWidth , -( float ) ( vectorMult[6] ) * markerHeight } ,
+			{ 0 , 0 , 0 , markerWidth , 0 , 1 , -( float ) ( vectorMult[7] ) * markerWidth , -( float ) ( vectorMult[7] ) * 0 } ,
 		};
 		for ( unsigned int j = 0; j < 8; ++j )
 		{
@@ -125,6 +125,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 		glm::vec4 row2 = glm::vec4( glm::cross( glm::vec3( row0 ) , glm::vec3( row1 ) ) , translateVector.z );
 		glm::mat4 theResultingMatrix( row0 , row1 , row2 , glm::vec4( 0 , 0 , 0 , 1 ) );
 		transform = glm::transpose( theResultingMatrix );
+		quad.transform = transform;
 		//translated /= translated.w;
 		std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
 	}
