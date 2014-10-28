@@ -41,6 +41,7 @@ struct Quad
 {
 	glm::vec2 pt[4];
 	glm::mat4 transform;
+	unsigned int markerID;
 };
 
 class ANICARDLIB_SHARED ARMarkerDetector

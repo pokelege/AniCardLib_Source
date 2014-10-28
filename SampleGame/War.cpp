@@ -82,7 +82,7 @@ void War::initializeGL()
 	plane = GameObjectManager::globalGameObjectManager.addGameObject();
 	plane->addComponent( renderable );
 	plane->scale = glm::vec3( 10 , 10 , 10 );
-	//renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &identity , 1 );
+	renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &identity , 1 );
 	Camera* camera = GraphicsCameraManager::globalCameraManager.addCamera();
 	camera->initializeRenderManagers();
 	camera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );

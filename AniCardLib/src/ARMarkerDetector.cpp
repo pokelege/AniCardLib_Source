@@ -610,6 +610,8 @@ void ARMarkerDetector::_findCard( )
 			//}
 			//delete[] matrix;
 			//delete[] vectorMult;
+
+
 			quadResults.push_back( quadResult );
 			//debug
 			//{

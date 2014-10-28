@@ -32,14 +32,14 @@ void MarkerPack::addMarker( const char* file )
 	int channels = 0;
 	unsigned char* bytes = SOIL_load_image( file , &marker.width , &marker.height , &channels , SOIL_LOAD_RGBA );
 	marker.bytes = new unsigned char[marker.height * marker.width];
-	std::cout << channels << std::endl;
+	//std::cout << channels << std::endl;
 	for ( int y = 0; y < marker.height; ++y )
 	{
 		for ( int x = 0; x < marker.width; ++x )
 		{
 			unsigned long iOffset = ( unsigned long ) ( ( y * 4 * marker.width ) + ( x * 4 ) );
 			float grayPixel = ( ( float ) bytes[iOffset] + ( float ) bytes[iOffset + 1] + ( float ) bytes[iOffset + 2] ) / 3.0f;
-			unsigned long i = ( unsigned long ) ( ( y * marker.width) + ( x ) );
+			unsigned long i = ( unsigned long ) ( ( y * marker.width ) + ( x ) );
 			marker.bytes[i] = ( unsigned char ) grayPixel;
 		}
 	}
@@ -64,6 +64,70 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 
 	FoundMarkerInfo resultantMarker = getSmallestDissimilarity( quadInfo );
 
+	float markerWidth = ( float ) markers[0].width;
+	float markerHeight = ( float ) markers[0].height;
+	float* vectorMult = new float[8];
+	vectorMult[0] = ( float ) ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) / 1000.0f;
+	vectorMult[1] = ( float ) ( resultantMarker.points[1].x - ( pictureWidth / 2 ) ) / 1000.0f;
+	vectorMult[2] = ( float ) ( resultantMarker.points[2].x - ( pictureWidth / 2 ) ) / 1000.0f;
+	vectorMult[3] = ( float ) ( resultantMarker.points[3].x - ( pictureWidth / 2 ) ) / 1000.0f;
+	vectorMult[4] = ( float ) ( resultantMarker.points[0].y - ( pictureHeight / 2 ) ) / 1000.0f;
+	vectorMult[5] = ( float ) ( resultantMarker.points[1].y - ( pictureHeight / 2 ) ) / 1000.0f;
+	vectorMult[6] = ( float ) ( resultantMarker.points[2].y - ( pictureHeight / 2 ) ) / 1000.0f;
+	vectorMult[7] = ( float ) ( resultantMarker.points[3].y - ( pictureHeight / 2 ) ) / 1000.0f;
+
+	float* matrix = new float[8 * 8];
+	{
+
+		float prematrix[8][8] =
+		{
+			{ 0 , 0 , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[0].x ) * 0 , -( float ) ( resultantMarker.points[0].x ) * 0 } ,
+			{ 0 , markerHeight , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[1].x ) * 0 , -( float ) ( resultantMarker.points[1].x ) * markerHeight } ,
+			{ markerWidth , markerHeight , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[2].x ) *markerWidth , -( float ) ( resultantMarker.points[2].x ) * markerHeight } ,
+			{ markerWidth , 0 , 1 , 0 , 0 , 0 , -( float ) ( resultantMarker.points[3].x ) * markerWidth , -( float ) ( resultantMarker.points[3].x ) * 0 } ,
+
+			{ 0 , 0 , 0 , 0 , 0 , 1 , -( float ) ( resultantMarker.points[0].y ) * 0 , -( float ) ( resultantMarker.points[0].y ) * 0 } ,
+			{ 0 , 0 , 0 , 0 , markerHeight , 1 , -( float ) ( resultantMarker.points[1].y ) * 0 , -( float ) ( resultantMarker.points[1].y ) * markerHeight } ,
+			{ 0 , 0 , 0 , markerWidth , markerHeight , 1 , -( float ) ( resultantMarker.points[2].y ) * markerWidth , -( float ) ( resultantMarker.points[2].y ) * markerHeight } ,
+			{ 0 , 0 , 0 , markerWidth , 0 , 1 , -( float ) ( resultantMarker.points[3].y ) * markerWidth , -( float ) ( resultantMarker.points[3].y ) * 0 } ,
+		};
+		for ( unsigned int j = 0; j < 8; ++j )
+		{
+			for ( unsigned int i = 0; i < 8; ++i )
+			{
+				matrix[( j * 8 ) + i] = prematrix[j][i];
+			}
+		}
+	}
+
+	float determinant = MathHelpers::Determinant( matrix , 8 );
+	//std::cout << determinant << std::endl;
+	glm::mat4 transform;
+	if ( determinant != 0 )
+	{
+		MathHelpers::preAdj( matrix , 8 );
+		MathHelpers::Transpose( matrix , 8 );
+		MathHelpers::Multiply( matrix , 1.0f / determinant , 8 );
+		MathHelpers::MultiplyVector( matrix , vectorMult , 8 );
+
+		float a = ( vectorMult[2] * vectorMult[5] ) - ( vectorMult[4] * vectorMult[3] );
+		float b = ( vectorMult[0] * vectorMult[5] ) - ( vectorMult[1] * vectorMult[4] );
+		float c = ( vectorMult[0] * vectorMult[3] ) - ( vectorMult[2] * vectorMult[1] );
+		//std::cout << "{" << a << "," << b << "," << c << "}" << std::endl;
+		glm::vec4 translateVector;
+		translateVector.z = -powf( 1.0f / ( ( a * a ) + ( b* b ) + ( c* c ) ) , 0.25f );
+		//std::cout << translateVector.z << std::endl;
+		translateVector.x = -vectorMult[6] * translateVector.z;
+		translateVector.y = -vectorMult[7] * translateVector.z;
+		translateVector.w = 1;
+		glm::vec4 row0( -vectorMult[0] * translateVector.z , -vectorMult[2] * translateVector.z , vectorMult[4] * translateVector.z , translateVector.x );
+		glm::vec4 row1( -vectorMult[1] * translateVector.z , -vectorMult[3] * translateVector.z , vectorMult[5] * translateVector.z , translateVector.y );
+		glm::vec4 row2 = glm::vec4( glm::cross( glm::vec3( row0 ) , glm::vec3( row1 ) ) , translateVector.z );
+		glm::mat4 theResultingMatrix( row0 , row1 , row2 , glm::vec4( 0 , 0 , 0 , 1 ) );
+		transform = glm::transpose( theResultingMatrix );
+		//translated /= translated.w;
+		std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
+	}
 	//compareOrientations[1].marker = 0;
 	//compareOrientations[1].picture = picture;
 	//compareOrientations[1].pictureHeight = pictureHeight;
@@ -179,36 +243,41 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 	//	//std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
 	//}
 
-if ( debugPicture && ( markers[resultantMarker.markerID].width != width || markers[resultantMarker.markerID].height != height ) )
-	{
-		delete[] debugPicture;
-		debugPicture = 0;
-		width = 0;
-		height = 0;
-	}
-	if ( !debugPicture )
-	{
-		debugPicture = new unsigned char[( ( int ) markers[resultantMarker.markerID].width * ( int ) markers[resultantMarker.markerID].height ) * 4];
-		width = ( long ) markers[resultantMarker.markerID].width;
-		height = ( long ) markers[resultantMarker.markerID].height;
-	}
-	while ( numUsing ) std::cout <<"using at markerpack" << std::endl;
-	canGrab = false;
-	for ( unsigned long y = 0; y < height; ++y )
-	{
-		for ( unsigned long x = 0; x < width; ++x )
-		{
-			float Xi = ( resultantMarker.theAs[0] * x + resultantMarker.theAs[1] * y + resultantMarker.theAs[2] ) /
-				( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
-			float Yi = ( resultantMarker.theAs[3] * x + resultantMarker.theAs[4] * y + resultantMarker.theAs[5] ) /
-				( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
-			debugPicture[( y * 4 * width ) + ( x * 4 )] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
-			debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
-			debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
-		}
-	}
-	std::cout << resultantMarker.markerID << std::endl;
-	canGrab = true;
+	//while ( numUsing ) std::cout << "using at markerpack" << std::endl;
+	//canGrab = false;
+	//if ( debugPicture && ( markers[resultantMarker.markerID].width != width || markers[resultantMarker.markerID].height != height ) )
+	//{
+	//	delete[] debugPicture;
+	//	debugPicture = 0;
+	//	width = 0;
+	//	height = 0;
+	//}
+	//if ( !debugPicture )
+	//{
+	//	debugPicture = new unsigned char[( ( int ) markers[resultantMarker.markerID].width * ( int ) markers[resultantMarker.markerID].height ) * 4];
+	//	width = ( long ) markers[resultantMarker.markerID].width;
+	//	height = ( long ) markers[resultantMarker.markerID].height;
+	//}
+
+	//for ( unsigned long y = 0; y < height; ++y )
+	//{
+	//	for ( unsigned long x = 0; x < width; ++x )
+	//	{
+	//		float Xi = ( resultantMarker.theAs[0] * x + resultantMarker.theAs[1] * y + resultantMarker.theAs[2] ) /
+	//			( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
+	//		float Yi = ( resultantMarker.theAs[3] * x + resultantMarker.theAs[4] * y + resultantMarker.theAs[5] ) /
+	//			( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
+	//		//debugPicture[( y * 4 * width ) + ( x * 4 )] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
+	//		//debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
+	//		//debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
+	//		debugPicture[( y * 4 * width ) + ( x * 4 )] = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )];
+	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )];
+	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )];
+
+	//	}
+	//}
+	//std::cout << resultantMarker.markerID << std::endl;
+	//canGrab = true;
 	//delete[] matrix;
 	//delete[] vectorMult;
 	return true;
@@ -256,20 +325,19 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 			}
 		}
 	}
-
+	//AniCardLib::Clock clock;
+	//clock.Start();
 	float determinant = MathHelpers::Determinant( matrix , 8 );
+	//std::cout << "clock " << clock.Stop() << std::endl;
 	glm::mat4 transform;
 	if ( determinant != 0 )
 	{
-		AniCardLib::Clock clock;
-		
-		MathHelpers::preAdj( matrix , 8 );
-		
-		MathHelpers::Transpose( matrix , 8 );
 
+		MathHelpers::preAdj( matrix , 8 );
+
+		MathHelpers::Transpose( matrix , 8 );
 		MathHelpers::Multiply( matrix , 1.0f / determinant , 8 );
-		
-		//clock.Start();
+
 		MathHelpers::MultiplyVector( matrix , vectorMult , 8 );
 		markerFoundInfo.theAs[0] = vectorMult[0];
 		markerFoundInfo.theAs[1] = vectorMult[1];
@@ -279,7 +347,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 		markerFoundInfo.theAs[5] = vectorMult[5];
 		markerFoundInfo.theAs[6] = vectorMult[6];
 		markerFoundInfo.theAs[7] = vectorMult[7];
-		//std::cout << "clock " << clock.Stop() << std::endl;
+
 		//if ( debugPicture && ( markerWidth != width || markerHeight != height ) )
 		//{
 		//	delete[] debugPicture;
@@ -351,6 +419,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerDissimilarity( CompareWithMarke
 		smallestDissimilarity = min( theResult.dissimilarity , smallestDissimilarity );
 		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
 	}
+	//std::cout << "mid " << c.Stop() << std::endl;
 	return foundInfos[closest];
 }
 
@@ -373,7 +442,8 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 
 	unsigned int closest = 0;
 	unsigned long smallestDissimilarity = ULONG_MAX;
-
+	AniCardLib::Clock c;
+	c.Start();
 	std::vector<FoundMarkerInfo> foundInfos;
 	for ( unsigned int i = 0; i < closestMarkerCorners.size(); ++i )
 	{
@@ -384,5 +454,6 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
 		//std::cout << theResult.markerID << " " << theResult.dissimilarity << std::endl;
 	}
+	//std::cout << "top " << c.Stop() << std::endl;
 	return foundInfos[closest];
 }

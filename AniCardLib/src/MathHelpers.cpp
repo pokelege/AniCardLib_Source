@@ -7,6 +7,10 @@ float MathHelpers::Determinant( float* m1 , int size )
 	{
 		return m1[0];
 	}
+	else if ( size == 2 )
+	{
+		return ( m1[0] * m1[3] ) - ( m1[1] * m1[2] );
+	}
 	else
 	{
 		float result = 0;
@@ -32,11 +36,11 @@ float MathHelpers::Determinant( float* m1 , int size )
 
 			if ( i % 2 == 0 )
 			{
-				result += m1[( i * size )] * MathHelpers::Determinant( temp , size - 1 );
+				if ( m1[( i * size )] ) result += m1[( i * size )] * MathHelpers::Determinant( temp , size - 1 );
 			}
 			else
 			{
-				result -= m1[( i * size )] * MathHelpers::Determinant( temp , size - 1 );
+				if ( m1[( i * size )] ) result -= m1[( i * size )] * MathHelpers::Determinant( temp , size - 1 );
 			}
 			//std::cout << size - 1 << std::endl;
 			delete[] temp;
@@ -47,7 +51,7 @@ float MathHelpers::Determinant( float* m1 , int size )
 
 float MathHelpers::cofactor( float* matrix , int size , int i , int j )
 {
-	AniCardLib::Clock c;
+	//AniCardLib::Clock c;
 	
 	float* gets = new float[( size - 1 )* ( size - 1 )];
 
@@ -79,7 +83,7 @@ float MathHelpers::cofactor( float* matrix , int size , int i , int j )
 
 void MathHelpers::preAdj( float* matrix , int size )
 {
-	AniCardLib::Clock c;
+	//AniCardLib::Clock c;
 	//c.Start();
 	float* temp = new float[size * size];
 
