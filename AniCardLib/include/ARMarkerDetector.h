@@ -5,21 +5,21 @@
 #include <vector>
 #include <future>
 class PictureFetcher;
-struct EdgelInfo
+struct ANICARDLIB_SHARED EdgelInfo
 {
 	glm::ivec2 pos;
 	float gradientIntensity;
 	float angle;
 };
 
-struct EdgelInList
+struct ANICARDLIB_SHARED EdgelInList
 {
 	EdgelInfo edgel;
 	bool deletion;
 	EdgelInList() :deletion(false) {}
 };
 
-struct Line
+struct ANICARDLIB_SHARED Line
 {
 	glm::ivec2 start;
 	glm::ivec2 end;
@@ -28,7 +28,7 @@ struct Line
 	Line() : deletion(false) {}
 };
 
-struct ConstructingQuad
+struct ANICARDLIB_SHARED ConstructingQuad
 {
 	Line* line[4];
 	ConstructingQuad()
@@ -37,11 +37,18 @@ struct ConstructingQuad
 	}
 };
 
-struct Quad
-{
+struct ANICARDLIB_SHARED Quad
+{ 
 	glm::vec2 pt[4];
 	glm::mat4 transform;
 	unsigned int markerID;
+};
+
+struct ANICARDLIB_SHARED FoundMarkerInfo
+{
+	glm::mat4 transform;
+	glm::vec2 center;
+	unsigned int cardIndex;
 };
 
 class ANICARDLIB_SHARED ARMarkerDetector
@@ -56,13 +63,10 @@ class ANICARDLIB_SHARED ARMarkerDetector
 	long width , height;
 	unsigned char* copiedPictureInstance;
 
-	bool canGrabPositions;
-	bool canGrabMatrices;
-	unsigned int numUsingPos;
-	unsigned int numUsingMat;
-	std::vector<glm::vec2> toSend;
-	std::vector<glm::mat4> matrices;
-	ARMarkerDetector() : copiedPictureInstance(0), grayscaleImage(0), gradientIntensity(0), runningThread(0), gradientDirection(0), width(0), height(0), canGrab(false), numUsing(0), canGrabMatrices(false), canGrabPositions(false), numUsingPos(0), numUsingMat(0) {}
+	bool canGrabMarkerFound;
+	unsigned int numUsingMarkerFound;
+	std::vector<FoundMarkerInfo> toSend;
+	ARMarkerDetector() : copiedPictureInstance( 0 ) , grayscaleImage( 0 ) , gradientIntensity( 0 ) , runningThread( 0 ) , gradientDirection( 0 ) , width( 0 ) , height( 0 ) , canGrab( false ) , numUsing( 0 ) , canGrabMarkerFound( false ) , numUsingMarkerFound( 0 ) {}
 	void findLines(std::vector<Line>& linesToAdd );
 	std::vector<Line> findLinesOnRegion(long x , long y , long width , long height);
 	void _findCard( );
@@ -71,9 +75,7 @@ public:
 	void findCard( PictureFetcher* picture );
 	bool getPicture( unsigned char** bytes , long* width = 0 , long* height = 0 );
 	bool finishedUsing();
-	bool getPositions( std::vector<glm::vec2>** bytes);
-	bool finishedUsingPos();
-	bool getMatrices( std::vector<glm::mat4>** bytes );
-	bool finishedUsingMat();
+	bool getMarkerFound( std::vector<FoundMarkerInfo>** bytes );
+	bool finishedUsingMarkerFound();
 	static ARMarkerDetector global;
 };

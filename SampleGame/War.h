@@ -15,9 +15,9 @@ class War : public QGLWidget
 	WebCamSource* cameraSource;
 	TextureInfo* planeTexture, *planeDebugTexture;
 	GameObject* plane;
-	AnimationRenderingInfo* model1Animation;
+	AnimationRenderingInfo* diamondAnimation, *spadeAnimation;
 	QTimer* timer;
-	GameObject* model1;
+	GameObject* diamond, *spade;
 	glm::mat4 transform;
 	glm::mat4 identity;
 	int texture;

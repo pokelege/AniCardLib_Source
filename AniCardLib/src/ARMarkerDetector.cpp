@@ -32,37 +32,20 @@ bool ARMarkerDetector::finishedUsing()
 	else return false;
 }
 
-bool ARMarkerDetector::getPositions( std::vector<glm::vec2>** bytes )
+bool ARMarkerDetector::getMarkerFound( std::vector<FoundMarkerInfo>** bytes )
 {
-	if ( canGrabPositions && bytes )
+	if ( canGrabMarkerFound && bytes )
 	{
-		++numUsingPos;
+		++numUsingMarkerFound;
 		//std::cout << numUsing << std::endl;
 		*bytes = &toSend;
 		return true;
 	}
 	return false;
 }
-bool ARMarkerDetector::finishedUsingPos()
+bool ARMarkerDetector::finishedUsingMarkerFound()
 {
-	if ( numUsingPos > 0 ) { --numUsingPos; return true; }
-	else return false;
-}
-
-bool ARMarkerDetector::getMatrices( std::vector<glm::mat4>** bytes )
-{
-	if ( canGrabMatrices && bytes )
-	{
-		++numUsingMat;
-		//std::cout << numUsing << std::endl;
-		*bytes = &matrices;
-		return true;
-	}
-	return false;
-}
-bool ARMarkerDetector::finishedUsingMat()
-{
-	if ( numUsingMat > 0 ) { --numUsingMat; return true; }
+	if ( numUsingMarkerFound > 0 ) { --numUsingMarkerFound; return true; }
 	else return false;
 }
 
@@ -695,12 +678,9 @@ void ARMarkerDetector::_findCard( )
 		}
 	}
 
-	while ( numUsingPos );
-	canGrabPositions = false;
-	while ( numUsingMat );
-	canGrabMatrices = false;
+	while ( numUsingMarkerFound );
+	canGrabMarkerFound = false;
 	toSend.clear();
-	matrices.clear();
 	for ( unsigned int i = 0; i < quadResults.size(); ++i )
 	{
 		glm::vec2 center;
@@ -714,11 +694,15 @@ void ARMarkerDetector::_findCard( )
 		center.y = ( center.y / height);
 		center.y = ((center.y) * 2) - 1;
 		//std::cout << center.y << std::endl;
-		toSend.push_back( center );
-		matrices.push_back( quadResults[i].transform );
+
+		FoundMarkerInfo found;
+		found.transform = quadResults[i].transform;
+		found.center = center;
+		found.cardIndex = quadResults[i].markerID;
+
+		toSend.push_back( found );
 	}
-	canGrabMatrices = true;
-	canGrabPositions = true;
+	canGrabMarkerFound = true;
 
 	//std::cout << "num lines " << theLines.size() << std::endl;
 	//std::cout << "num quads " << quadResults.size() << std::endl;

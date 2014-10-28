@@ -13,8 +13,8 @@ out vec4 newColor;
 void main()
 {
 	//if(useTexture) 
-	//newColor = texture2D(colorTexture, uvsend);
-	newColor =  texture2D(debug, uvsend);
+	newColor = texture2D(colorTexture, uvsend);
+	//newColor =  texture2D(debug, uvsend);
 	newColor = vec4(newColor.z, newColor.y, newColor.x,1);
 	//else newColor = color;
 };

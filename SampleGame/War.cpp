@@ -35,7 +35,8 @@ War::~War()
 {
 	CommonGraphicsCommands::destroyGlobalGraphics();
 	GameObjectManager::globalGameObjectManager.destroy();
-	delete model1Animation;
+	delete diamondAnimation;
+	delete spadeAnimation;
 	delete timer;
 	delete cameraSource;
 	AudioController::globalAudioController.destroy();
@@ -93,37 +94,62 @@ void War::initializeGL()
 	camera->direction = glm::vec3( 0 , 0 , -1 );
 	player->addComponent( camera );
 
-	GeometryInfo* diamond = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/diamond.pmd" , GraphicsBufferManager::globalBufferManager );
-	diamond->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
-	diamond->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
-	diamond->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
-	diamond->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+	GeometryInfo* diamondGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/diamond.pmd" , GraphicsBufferManager::globalBufferManager );
+	diamondGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	diamondGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+	diamondGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+	diamondGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 
 	TextureInfo* diamondTexture = GraphicsTextureManager::globalTextureManager.addTexture( "Textures/diamond.png" );
 
-	Renderable* model1Renderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
-	model1Renderable->initialize( 10 , 1 );
-	model1Renderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
-	model1Renderable->geometryInfo = diamond;
-	model1Renderable->shaderInfo = shader2;
-	model1Renderable->alphaBlendingEnabled = false;
-	model1Renderable->culling = CT_NONE;
-	model1Renderable->addTexture( diamondTexture );
-	model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
-	model1Animation = new AnimationRenderingInfo;
+	Renderable* diamondRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	diamondRenderable->initialize( 10 , 1 );
+	diamondRenderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	diamondRenderable->geometryInfo = diamondGeo;
+	diamondRenderable->shaderInfo = shader2;
+	diamondRenderable->alphaBlendingEnabled = false;
+	diamondRenderable->culling = CT_NONE;
+	diamondRenderable->addTexture( diamondTexture );
+	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
+	diamondAnimation = new AnimationRenderingInfo;
 	
+	diamond = GameObjectManager::globalGameObjectManager.addGameObject();
+	diamond->addComponent( diamondRenderable );
+	diamond->addComponent( diamondAnimation );
+	diamond->rotate = glm::vec3( 90 , 0 , 0 );
+	diamond->active = false;
 
-	AudioController::globalAudioController.initialize();
-	//AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
-	model1 = GameObjectManager::globalGameObjectManager.addGameObject();
-	model1->addComponent( model1Renderable );
-	model1->addComponent( model1Animation );
-	//model1->rotate = glm::vec3( 90 , 90, 0 );
-	model1->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
-	model1->active = false;
+	GeometryInfo* spadeGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/spade.pmd" , GraphicsBufferManager::globalBufferManager );
+	spadeGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	spadeGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+	spadeGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+	spadeGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+
+	TextureInfo* spadeTexture = GraphicsTextureManager::globalTextureManager.addTexture( "Textures/spade.png" );
+
+	Renderable* spadeRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	spadeRenderable->initialize( 10 , 1 );
+	spadeRenderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	spadeRenderable->geometryInfo = spadeGeo;
+	spadeRenderable->shaderInfo = shader2;
+	spadeRenderable->alphaBlendingEnabled = false;
+	spadeRenderable->culling = CT_NONE;
+	spadeRenderable->addTexture( spadeTexture );
+	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
+	spadeAnimation = new AnimationRenderingInfo;
+
+	spade = GameObjectManager::globalGameObjectManager.addGameObject();
+	spade->addComponent( spadeRenderable );
+	spade->addComponent( spadeAnimation );
+	spade->rotate = glm::vec3( 90 , 0 , 0 );
+	spade->active = false;
+
 	
 	MarkerPack::global.addMarker( "Textures/Cards/AS.png" );
 	MarkerPack::global.addMarker( "Textures/Cards/AD.png" );
+
+	AudioController::globalAudioController.initialize();
+	//AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
@@ -139,24 +165,38 @@ void War::update()
 	{
 		ARMarkerDetector::global.findCard( cameraSource->fetcher );
 	}
-	std::vector<glm::mat4>* list = 0;
-	if ( ARMarkerDetector::global.getMatrices( &list ) )
+	std::vector<FoundMarkerInfo>* list = 0;
+	if ( ARMarkerDetector::global.getMarkerFound( &list ) )
 	{
 		if ( list && list->size() )
 		{
 			fails = 0;
-			transform = list->at( 0 );
+			//transform = list->at( 0 );
 			//transform *= glm::inverse( transform );
-			//glm::vec3 characterPos( (list->at( 0 ).x * plane->scale.x)  / 2, (list->at( 0 ).y * plane->scale.y) / 2 , 0 );
-			//model1->translate = characterPos;
-			model1->active = true;
+			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) / 2 , ( list->at( 0 ).center.y * plane->scale.y ) / 2 , 0 );
+			//diamond->translate = characterPos;
+			diamond->active = false;
+			spade->active = false;
+			std::cout << list->at( 0 ).cardIndex << std::endl;
+			switch ( (int)list->at(0).cardIndex )
+			{
+				case (0):
+					spade->translate = characterPos;
+					spade->active = true;
+					break;
+				case (1):
+					diamond->translate = characterPos;
+					diamond->active = true;
+					break;
+			}
 		}
-		else if(model1->active) fails++;
-		if ( model1->active && fails >= maxFails )
+		else if ( diamond->active ) fails++;
+		if ( (diamond->active || spade->active) && fails >= maxFails )
 		{
-			model1->active = false;
+			diamond->active = false;
+			spade->active = false;
 		}
-		ARMarkerDetector::global.finishedUsingMat();
+		ARMarkerDetector::global.finishedUsingMarkerFound();
 	}
 	QPoint point = cursor().pos();
 	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( point.x() , point.y() ) );
@@ -182,14 +222,14 @@ void War::paintGL()
 		}
 	}
 
-	unsigned char* pictureData = 0;
-	long width;
-	long height;
-	if ( MarkerPack::global.getPicture( &pictureData , &width , &height ) )
-	{
-		GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
-		MarkerPack::global.finishedUsing();
-	}
+	//unsigned char* pictureData = 0;
+	//long width;
+	//long height;
+	//if ( MarkerPack::global.getPicture( &pictureData , &width , &height ) )
+	//{
+	//	GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
+	//	MarkerPack::global.finishedUsing();
+	//}
 
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
 }

@@ -66,8 +66,8 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 
 	FoundMarkerInfo resultantMarker = getSmallestDissimilarity( quadInfo );
 
-	float markerWidth = (( float ) markers[0].width) / pictureWidth;
-	float markerHeight = (( float ) markers[0].height) / pictureHeight;
+	float markerWidth = ( ( float ) markers[0].width ) / pictureWidth;
+	float markerHeight = ( ( float ) markers[0].height ) / pictureHeight;
 	float* vectorMult = new float[8];
 	vectorMult[0] = ( float ) ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) / 2000.0f;
 	vectorMult[1] = ( float ) ( resultantMarker.points[1].x - ( pictureWidth / 2 ) ) / 2000.0f;
@@ -130,7 +130,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 		glm::vec4 row1( -vectorMult[1] * translateVector.z , -vectorMult[3] * translateVector.z , vectorMult[5] * translateVector.z , 0 );
 		glm::vec4 row2 = glm::vec4( glm::cross( glm::vec3( row1 ) , glm::vec3( row0 ) ) , 0 );
 		glm::mat4 theResultingMatrix( row0 , row1 , row2 , glm::vec4( 0 , 0 , 0 , 1 ) );
-		transform = glm::translate( glm::mat4() , translateVector ) * glm::transpose(theResultingMatrix);
+		transform = glm::translate( glm::mat4() , translateVector ) * glm::transpose( theResultingMatrix );
 		quad.transform = transform;
 		//translated /= translated.w;
 		std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
@@ -287,6 +287,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 	//canGrab = true;
 	//delete[] matrix;
 	//delete[] vectorMult;
+	quad.markerID = resultantMarker.markerID;
 	return true;
 }
 
