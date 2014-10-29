@@ -23,5 +23,6 @@ public:
 	HRESULT selectCamera( IMoniker& camera , std::vector<CameraConfigs>& caps );
 	void selectResolution( CameraConfigs& config );
 	HRESULT initialize();
+	void update();
 	HRESULT destroy();
 };

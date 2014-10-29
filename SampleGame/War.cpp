@@ -149,7 +149,7 @@ void War::initializeGL()
 	MarkerPack::global.addMarker( "Textures/Cards/AD.png" );
 
 	AudioController::globalAudioController.initialize();
-	//AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
+	AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
@@ -158,6 +158,7 @@ static int fails = 0;
 static int maxFails = 100;
 void War::update()
 {
+	cameraSource->update();
 	WindowInfo::width = width();
 	WindowInfo::height = height();
 	Clock::update();
@@ -177,7 +178,7 @@ void War::update()
 			//diamond->translate = characterPos;
 			diamond->active = false;
 			spade->active = false;
-			std::cout << list->at( 0 ).cardIndex << std::endl;
+			//std::cout << list->size() << std::endl;
 			switch ( (int)list->at(0).cardIndex )
 			{
 				case (0):
@@ -190,7 +191,7 @@ void War::update()
 					break;
 			}
 		}
-		else if ( diamond->active ) fails++;
+		else if ( diamond->active || spade->active ) fails++;
 		if ( (diamond->active || spade->active) && fails >= maxFails )
 		{
 			diamond->active = false;
@@ -217,7 +218,10 @@ void War::paintGL()
 		if ( cameraSource->fetcher->getPicture(&pictureData, &width, &height) )
 		{
 			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) pictureData, width , height , 0 );
-			plane->scale = 0.025f * glm::vec3( width , height , 1 );
+			float toSize = std::min( (float)width , (float)height );
+			toSize = 20.0f / toSize;
+			//std::cout << toSize * width << std::endl;
+			plane->scale = glm::vec3( toSize * width , toSize * height , 1 );
 			cameraSource->fetcher->finishedUsing();
 		}
 	}
@@ -225,10 +229,10 @@ void War::paintGL()
 	//unsigned char* pictureData = 0;
 	//long width;
 	//long height;
-	//if ( MarkerPack::global.getPicture( &pictureData , &width , &height ) )
+	//if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
 	//{
 	//	GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
-	//	MarkerPack::global.finishedUsing();
+	//	ARMarkerDetector::global.finishedUsing();
 	//}
 
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();

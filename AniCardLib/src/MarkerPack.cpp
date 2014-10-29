@@ -41,8 +41,10 @@ void MarkerPack::addMarker( const char* file )
 		{
 			unsigned long iOffset = ( unsigned long ) ( ( y * 4 * marker.width ) + ( x * 4 ) );
 			float grayPixel = ( ( float ) bytes[iOffset] + ( float ) bytes[iOffset + 1] + ( float ) bytes[iOffset + 2] ) / 3.0f;
+			unsigned char result = 0;
+			if ( grayPixel > 128 ) result = 255;
 			unsigned long i = ( unsigned long ) ( ( y * marker.width ) + ( x ) );
-			marker.bytes[i] = ( unsigned char ) grayPixel;
+			marker.bytes[i] = ( unsigned char ) result;
 		}
 	}
 	markers.push_back( marker );
@@ -123,7 +125,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 		glm::vec3 translateVector;
 		translateVector.z = -powf( 1.0f / ( ( a * a ) + ( b* b ) + ( c* c ) ) , 0.25f );
 		//std::cout << translateVector.z << std::endl;
-		std::cout << vectorMult[6] << std::endl;
+		//std::cout << vectorMult[6] << std::endl;
 		translateVector.x = -vectorMult[6] * translateVector.z;
 		translateVector.y = -vectorMult[7] * translateVector.z;
 		glm::vec4 row0( -vectorMult[0] * translateVector.z , -vectorMult[2] * translateVector.z , vectorMult[4] * translateVector.z , 0 );
@@ -133,7 +135,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 		transform = glm::translate( glm::mat4() , translateVector ) * glm::transpose( theResultingMatrix );
 		quad.transform = transform;
 		//translated /= translated.w;
-		std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
+		//std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
 	}
 	//compareOrientations[1].marker = 0;
 	//compareOrientations[1].picture = picture;
@@ -277,13 +279,16 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 	//		//debugPicture[( y * 4 * width ) + ( x * 4 )] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
 	//		//debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
 	//		//debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
-	//		debugPicture[( y * 4 * width ) + ( x * 4 )] = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )];
-	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )];
-	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )];
-
+	//		unsigned char value = 0;
+	//		if ( picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )] > 255 / 2 ) value = 255;
+	//		debugPicture[( y * 4 * width ) + ( x * 4 )] = value;
+	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = value;
+	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = value;
+	//		//unsigned long toAdd = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )] - markers[resultantMarker.markerID].bytes[( y * markers[resultantMarker.markerID].width ) + x];
+	//		//std::cout << toAdd << std::endl;
 	//	}
 	//}
-	//std::cout << resultantMarker.markerID << std::endl;
+	////std::cout << "dissimilarity " << resultantMarker.dissimilarity << std::endl;
 	//canGrab = true;
 	//delete[] matrix;
 	//delete[] vectorMult;
@@ -356,38 +361,28 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 		markerFoundInfo.theAs[6] = vectorMult[6];
 		markerFoundInfo.theAs[7] = vectorMult[7];
 
-		//if ( debugPicture && ( markerWidth != width || markerHeight != height ) )
-		//{
-		//	delete[] debugPicture;
-		//	debugPicture = 0;
-		//	width = 0;
-		//	height = 0;
-		//}
-		//if ( !debugPicture )
-		//{
-		//	debugPicture = new unsigned char[( ( int ) markerWidth * ( int ) markerHeight ) * 4];
-		//	width = ( long ) markerWidth;
-		//	height = ( long ) markerHeight;
-		//}
-
 		//AniCardLib::Clock c;
 		//c.Start();
 		unsigned long difference = 0;
-		for ( unsigned long y = 0; y < height; ++y )
+		for ( unsigned long y = 0; y < markerHeight; ++y )
 		{
-			for ( unsigned long x = 0; x < width; ++x )
+			for ( unsigned long x = 0; x < markerWidth; ++x )
 			{
 				float Xi = ( vectorMult[0] * x + vectorMult[1] * y + vectorMult[2] ) /
 					( vectorMult[6] * x + vectorMult[7] * y + 1 );
 				float Yi = ( vectorMult[3] * x + vectorMult[4] * y + vectorMult[5] ) /
 					( vectorMult[6] * x + vectorMult[7] * y + 1 );
 				if ( Xi < 0 || Yi < 0 || Xi >= info.pictureWidth || Yi >= info.pictureHeight ) continue;
-				unsigned long toAdd = info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] - markers[info.marker].bytes[( y * markers[info.marker].width ) + x];
+				unsigned char picturePixel = 0;
+				if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
+				unsigned long toAdd = picturePixel - markers[info.marker].bytes[( y * markers[info.marker].width ) + x];
 				difference += toAdd * toAdd;
 			}
 		}
 		//std::cout << "calctimepic " << c.Stop() << std::endl;
 		markerFoundInfo.dissimilarity = difference;
+		//std::cout << "dissimilarity " << difference << std::endl;
+		
 	}
 	//std::cout << info.marker << std::endl;
 	delete[] matrix;
@@ -426,7 +421,10 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerDissimilarity( CompareWithMarke
 		foundInfos.push_back( theResult );
 		smallestDissimilarity = min( theResult.dissimilarity , smallestDissimilarity );
 		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
+		//std::cout << "dissimilarity " << i << " " << theResult.dissimilarity << std::endl;
 	}
+	//std::cout << "dissimilarity closest " << foundInfos[closest].dissimilarity << std::endl;
+	//std::cin.get();
 	//std::cout << "mid " << c.Stop() << std::endl;
 	return foundInfos[closest];
 }
@@ -460,8 +458,10 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		foundInfos.push_back( theResult );
 		smallestDissimilarity = min( theResult.dissimilarity , smallestDissimilarity );
 		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
-		//std::cout << theResult.markerID << " " << theResult.dissimilarity << std::endl;
+		//std::cout << "dissimilarity " << i << " " << theResult.dissimilarity << std::endl;
 	}
+	//std::cout << "dissimilarity closest " << foundInfos[closest].dissimilarity << std::endl;
+	//std::cin.get();
 	//std::cout << "top " << c.Stop() << std::endl;
 	return foundInfos[closest];
 }

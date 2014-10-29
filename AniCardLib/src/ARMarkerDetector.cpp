@@ -454,8 +454,8 @@ void ARMarkerDetector::_findCard( )
 	//			glm::vec2 testPixel = glm::vec2( theLines[i].start );
 	//			glm::ivec2 lastPixel = theLines[i].start;
 	//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-	//			std::cout << lastPixel.y << std::endl;
-	//			std::cout << lastPixel.x << std::endl;
+	//			//std::cout << lastPixel.y << std::endl;
+	//			//std::cout << lastPixel.x << std::endl;
 	//			copiedPictureInstance[iOffset] = ( unsigned char ) 0;
 	//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
 	//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 255;
@@ -507,7 +507,7 @@ void ARMarkerDetector::_findCard( )
 			glm::vec2 lineToDot = glm::vec2( quad.line[1]->start - quad.line[0]->start );
 			float theDot = glm::dot( lineToDot , normal );
 			quadResult.pt[0] = glm::ivec2(theDot * normal) + quad.line[0]->start;
-			
+
 			normal = glm::normalize( glm::vec2( quad.line[1]->end - quad.line[1]->start ) );
 			lineToDot = glm::vec2( quad.line[2]->start - quad.line[1]->start );
 			theDot = glm::dot( lineToDot , normal );
@@ -716,7 +716,7 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 	{
 		//std::cout << "highindex " << index << std::endl;
 	}
-	float angleThreshold = 3;
+	float angleThreshold = 5;
 	float threshold = ((float)(width + height) / 2.0f) * 0.015f;
 	//std::cout << threshold << std::endl;
 	if ( index == 4 )
@@ -734,7 +734,12 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 			glm::vec2 lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[3]->start );
 			float theDot = glm::dot( lineToDot , normal );
 			quadToEdit.line[3]->end = glm::ivec2( theDot * normal ) + quadToEdit.line[3]->start;
-			quadToEdit.line[0]->start = quadToEdit.line[3]->end;
+
+			normal = glm::normalize( glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
+			lineToDot = glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[0]->end );
+			theDot = glm::dot( lineToDot , normal );
+			quadToEdit.line[0]->start = glm::ivec2( theDot * normal ) + quadToEdit.line[0]->end;
+			//quadToEdit.line[0]->start = quadToEdit.line[3]->end;
 			return true;
 		}
 		return found;
