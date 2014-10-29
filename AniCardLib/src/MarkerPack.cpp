@@ -460,7 +460,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
 		//std::cout << "dissimilarity " << i << " " << theResult.dissimilarity << std::endl;
 	}
-	//std::cout << "dissimilarity closest " << foundInfos[closest].dissimilarity << std::endl;
+	std::cout << "dissimilarity closest " << foundInfos[closest].dissimilarity << std::endl;
 	//std::cin.get();
 	//std::cout << "top " << c.Stop() << std::endl;
 	return foundInfos[closest];
