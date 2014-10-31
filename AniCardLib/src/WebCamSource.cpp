@@ -240,7 +240,7 @@ void WebCamSource::update()
 	if ( iKInterface != 0 )
 	{
 		iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Auto );
-		HRESULT a = iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Manual );
+		iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Manual );
 		//iKInterface->Set( KSPROPERTY_CAMERACONTROL_ , 0 , CameraControl_Flags_Auto );
 		//std::cout << _com_error( a ).ErrorMessage() << std::endl;
 		//unsigned long numNodes = 0;

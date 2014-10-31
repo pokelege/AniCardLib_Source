@@ -1,5 +1,5 @@
 #pragma once
-#ifdef	ANICARDLIB_EXPORTS
+#ifdef	LIB_EXPORTS
 #define ANICARDLIB_SHARED __declspec( dllexport )
 #ifdef _DEBUG
 #include <crtdbg.h>
