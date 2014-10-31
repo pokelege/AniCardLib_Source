@@ -1,4 +1,4 @@
-#include "War.h"
+#include <War.h>
 #include <Graphics\CommonGraphicsCommands.h>
 #include <Core\GameObjectManger.h>
 #include <Graphics\GraphicsCameraManager.h>
@@ -26,7 +26,7 @@
 #include <Audio\AudioController.h>
 #include <ARMarkerDetector.h>
 #include <MarkerPack.h>
-#include "DebugMemory.h"
+#include <DebugMemory.h>
 War::War() :cameraSource(0)
 {
 	texture = 1;
@@ -48,8 +48,8 @@ void War::initializeGL()
 	ShaderInfo* shader;
 	{
 		std::string errors;
-		std::string vert = FileReader( "Shaders/SelfIllumDiffuseVertex.glsl" );
-		std::string frag = FileReader( "Shaders/SelfIllumDiffuseFragmentCamera.glsl" );
+		std::string vert = FileReader( "assets/shaders/SelfIllumDiffuseVertex.glsl" );
+		std::string frag = FileReader( "assets/shaders/SelfIllumDiffuseFragmentCamera.glsl" );
 		shader = GraphicsShaderManager::globalShaderManager.createShaderInfo( vert.c_str() , frag.c_str() , &errors );
 		std::cout << errors.c_str() << std::endl;
 	}
@@ -57,13 +57,13 @@ void War::initializeGL()
 	ShaderInfo* shader2;
 	{
 		std::string errors;
-		std::string vert = FileReader( "Shaders/SelfIllumDiffuseVertex.glsl" );
-		std::string frag = FileReader( "Shaders/SelfIllumDiffuseFragment.glsl" );
+		std::string vert = FileReader( "assets/shaders/SelfIllumDiffuseVertex.glsl" );
+		std::string frag = FileReader( "assets/shaders/SelfIllumDiffuseFragment.glsl" );
 		shader2 = GraphicsShaderManager::globalShaderManager.createShaderInfo( vert.c_str() , frag.c_str() , &errors );
 		std::cout << errors.c_str() << std::endl;
 	}
 
-	GeometryInfo* geometry = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/plane.pmd" , GraphicsBufferManager::globalBufferManager );
+	GeometryInfo* geometry = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/plane.pmd" , GraphicsBufferManager::globalBufferManager );
 	geometry->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 	geometry->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	geometry->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
@@ -94,13 +94,13 @@ void War::initializeGL()
 	camera->direction = glm::vec3( 0 , 0 , -1 );
 	player->addComponent( camera );
 
-	GeometryInfo* diamondGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/diamond.pmd" , GraphicsBufferManager::globalBufferManager );
+	GeometryInfo* diamondGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/diamond.pmd" , GraphicsBufferManager::globalBufferManager );
 	diamondGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 	diamondGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	diamondGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 	diamondGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 
-	TextureInfo* diamondTexture = GraphicsTextureManager::globalTextureManager.addTexture( "Textures/diamond.png" );
+	TextureInfo* diamondTexture = GraphicsTextureManager::globalTextureManager.addTexture( "assets/textures/diamond.png" );
 
 	Renderable* diamondRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	diamondRenderable->initialize( 10 , 1 );
@@ -119,13 +119,13 @@ void War::initializeGL()
 	diamond->rotate = glm::vec3( 90 , 0 , 0 );
 	diamond->active = false;
 
-	GeometryInfo* spadeGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "Models/spade.pmd" , GraphicsBufferManager::globalBufferManager );
+	GeometryInfo* spadeGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/spade.pmd" , GraphicsBufferManager::globalBufferManager );
 	spadeGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 	spadeGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	spadeGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 	spadeGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 
-	TextureInfo* spadeTexture = GraphicsTextureManager::globalTextureManager.addTexture( "Textures/spade.png" );
+	TextureInfo* spadeTexture = GraphicsTextureManager::globalTextureManager.addTexture( "assets/textures/spade.png" );
 
 	Renderable* spadeRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	spadeRenderable->initialize( 10 , 1 );
@@ -145,11 +145,11 @@ void War::initializeGL()
 	spade->active = false;
 
 	
-	MarkerPack::global.addMarker( "Textures/Cards/AS.png" );
-	MarkerPack::global.addMarker( "Textures/Cards/AD.png" );
+	MarkerPack::global.addMarker( "assets/textures/Cards/AS.png" );
+	MarkerPack::global.addMarker( "assets/textures/Cards/AD.png" );
 
 	AudioController::globalAudioController.initialize();
-	AudioController::globalAudioController.playSound( "Audio/music.mp3" , true );
+	AudioController::globalAudioController.playSound( "assets/audio/music.mp3" , true );
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
