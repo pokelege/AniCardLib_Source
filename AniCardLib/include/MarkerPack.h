@@ -3,12 +3,7 @@
 #include <AniCardLibExportHeader.h>
 #include <ARMarkerDetector.h>
 #include <glm.hpp>
-struct Marker
-{
-	unsigned char* bytes;
-	int width;
-	int height;
-};
+#include <Marker.h>
 
 class ANICARDLIB_SHARED MarkerPack
 {
@@ -40,6 +35,7 @@ class ANICARDLIB_SHARED MarkerPack
 public:
 	MarkerPack() : debugPicture( 0 ) {}
 	void addMarker( const char* file );
+	void loadMarkerPack( const char* file );
 	bool matchMarker( Quad& quad, const unsigned char* picture, long pictureWidth, long pictureHeight );
 	bool getPicture( unsigned char** bytes , long* width = 0 , long* height = 0 );
 	bool finishedUsing();
