@@ -2,22 +2,29 @@
 #include <fstream>
 #include <Marker.h>
 #include <SOIL.h>
+#include <TextureDimensions.h>
 AniCardLibFileInfo::AniCardLibFileInfo( const char* fileName )
 {
 	std::ifstream theFile( fileName , std::ios::ios_base::binary | std::ios::ios_base::in );
-	theFile.read( (char*)this , sizeof( unsigned int ) * 4 );
+	theFile.read( (char*)this , sizeof( unsigned int ) * 6 );
 	cardData = new Marker[numCards];
 
 	theFile.read( (char*)cardData , sizeof( Marker ) * numCards );
 
-	unsigned int* sizeOfModel = new unsigned int[numModels];
-	theFile.read( ( char* ) sizeOfModel , sizeof( unsigned int ) * numModels );
-	
 	cardImageData = new char[sizeOfCardImageData];
 	theFile.read( ( char* ) cardImageData , sizeOfCardImageData );
 
+	unsigned int* sizeOfModel = new unsigned int[numModels];
+	theFile.read( ( char* ) sizeOfModel , sizeof( unsigned int ) * numModels );
+
 	void* modelData = new char[sizeOfModelData];
 	theFile.read( ( char* ) modelData , sizeOfModelData );
+
+	TextureDimensions* textureDimension = new TextureDimensions[numTextures];
+	theFile.read( ( char* ) textureDimension , sizeof( TextureDimensions ) * numTextures );
+
+	void* textureData = new char[sizeOfTextureData];
+	theFile.read( ( char* ) textureData , sizeOfTextureData );
 
 	unsigned int imageOffset = 0;
 	for ( unsigned int i = 0; i < numCards; +i )
@@ -36,8 +43,19 @@ AniCardLibFileInfo::AniCardLibFileInfo( const char* fileName )
 		geos.push_back( geometryManager.addRawGeometry( ( char* ) ( ( unsigned int ) modelData + modelDataOffset ) , bufferManager ));
 		modelDataOffset += sizeOfModel[i];
 	}
+
+	textureManager.initialize( numTextures + 10 );
+	unsigned int textureDataOffset = 0;
+	for ( unsigned int i = 0; i < numTextures; ++i )
+	{
+		char* textureMap = (char*)( ( unsigned int ) textureData + textureDataOffset );
+		textures.push_back(textureManager.addTexture( textureMap , textureDimension[i].width , textureDimension[i].height, 0 ));
+		textureDataOffset += textureDimension[i].width * textureDimension[i].height * 4;
+	}
 	delete[] sizeOfModel;
 	delete[] modelData;
+	delete[] textureData;
+	delete[] textureDimension;
 }
 
 AniCardLibFileInfo::~AniCardLibFileInfo()
@@ -49,7 +67,7 @@ AniCardLibFileInfo::~AniCardLibFileInfo()
 	bufferManager.destroy();
 }
 
-int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel = -1 )
+int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel = -1 , const int& linkedTexture = -1 )
 {
 	int channels = 0, width, height;
 	unsigned char* bytes = SOIL_load_image( fileName , &width , &height , &channels , SOIL_LOAD_RGBA );
@@ -79,14 +97,88 @@ int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel
 	markers[numCards].width = width;
 	markers[numCards].height = height;
 	markers[numCards].linkedModel = linkedModel;
+	markers[numCards].linkedTexture = linkedTexture;
 	markers[numCards].imageOffset = sizeOfCardImageData;
-	++numCards;
 	sizeOfCardImageData += width * height;
+	return numCards++;
 }
-int addModel( const char* fileName , const int& cardToLink = -1 );
-Marker* getMarker( const unsigned int& id );
-unsigned int getMarkerListSize();
-GeometryInfo* getGeometry( const unsigned int& id );
-unsigned int getGeometryListSize();
+int AniCardLibFileInfo::addModel( const char* fileName , const int& cardToLink = -1 )
+{
+	GeometryInfo* theGeo = geometryManager.addPMDGeometry( fileName , bufferManager );
+	if ( !theGeo )
+	{
+		return -1;
+	}
+	geos.push_back( theGeo );
+	if ( cardToLink >= 0 )
+	{
+		Marker* markers = ( Marker* ) cardData;
+		markers[cardToLink].linkedModel = numModels;
+	}
+	return numModels++;
+}
 
-bool save( const char* fileName );
+int AniCardLibFileInfo::addTexture( const char* fileName , const int& cardToLink = -1 )
+{
+	TextureInfo* theTexture = textureManager.addTexture( fileName , 0 );
+	if ( !theTexture ) return -1;
+	textures.push_back( theTexture );
+	if ( cardToLink >= 0 )
+	{
+		Marker* markers = ( Marker* ) cardData;
+		markers[cardToLink].linkedTexture = numTextures;
+	}
+	return numTextures++;
+}
+
+Marker* AniCardLibFileInfo::getMarker( const unsigned int& id )
+{
+	if ( id >= numCards ) return 0;
+	Marker* markers = ( Marker* ) cardData;
+	return &markers[id];
+}
+unsigned int AniCardLibFileInfo::getMarkerListSize()
+{
+	return numCards;
+}
+GeometryInfo* AniCardLibFileInfo::getGeometry( const unsigned int& id )
+{
+	if ( id >= geos.size() ) return 0;
+	return geos.at( id );
+}
+unsigned int AniCardLibFileInfo::getGeometryListSize()
+{
+	return geos.size();
+}
+
+TextureInfo* AniCardLibFileInfo::getTexture( const unsigned int& id )
+{
+	if ( id >= textures.size() ) return 0;
+	return textures.at( id );
+}
+unsigned int AniCardLibFileInfo::getTextureListSize()
+{
+	return textures.size();
+}
+
+bool AniCardLibFileInfo::save( const char* fileName )
+{
+	std::fstream stream( fileName , std::ios_base::binary | std::ios_base::out | std::ios_base::trunc );
+
+	numModels = geos.size();
+	numTextures = textures.size();
+
+	std::string modelData;
+	std::vector<unsigned int> modelDataSize;
+	for ( unsigned int i = 0; i < geos.size(); ++i )
+	{
+		std::string toCopy = geometryManager.saveGeometry( geos[i] );
+		modelDataSize.push_back( toCopy.size() );
+		modelData += toCopy;
+	}
+	sizeOfModelData = modelData.size();
+
+	std::string textureData;
+	std::vector<TextureDimensions> textureDimensions;
+
+}
