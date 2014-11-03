@@ -164,7 +164,7 @@ void War::update()
 	Clock::update();
 	if ( cameraSource )
 	{
-		ARMarkerDetector::global.findCard( cameraSource->fetcher );
+		ARMarkerDetector::global.findCard( cameraSource->fetcher, &MarkerPack::global);
 	}
 	std::vector<FoundMarkerInfo>* list = 0;
 	if ( ARMarkerDetector::global.getMarkerFound( &list ) )

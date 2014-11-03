@@ -49,7 +49,7 @@ bool ARMarkerDetector::finishedUsingMarkerFound()
 	else return false;
 }
 
-void ARMarkerDetector::findCard( PictureFetcher* thePhoto )
+void ARMarkerDetector::findCard( PictureFetcher* thePhoto , MarkerPack* markerPack )
 {
 	if ( !thePhoto ) return;
 	if ( runningThread )
@@ -85,9 +85,9 @@ void ARMarkerDetector::findCard( PictureFetcher* thePhoto )
 	thePhoto->finishedUsing();
 	canGrab = true;
 
-	runningThread = new std::future<void>( std::async( std::launch::async , &ARMarkerDetector::_findCard , this ) );
+	runningThread = new std::future<void>( std::async( std::launch::async , &ARMarkerDetector::_findCard , this, markerPack ) );
 }
-void ARMarkerDetector::_findCard( )
+void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 {
 	std::vector<Line> theLines;
 	Clock c;
@@ -523,7 +523,7 @@ void ARMarkerDetector::_findCard( )
 			theDot = glm::dot( lineToDot , normal );
 			quadResult.pt[3] = glm::ivec2( theDot * normal ) + quad.line[3]->start;
 
-			MarkerPack::global.matchMarker( quadResult , grayscaleImage, width, height );
+			markerPack->matchMarker( quadResult , grayscaleImage, width, height );
 			//float* vectorMult = new float[8];
 			//vectorMult[0] = ( float ) ( quadResult.pt[0].x - 618.776f ) / 893.48f;
 			//vectorMult[1] = ( float ) ( quadResult.pt[1].x - 618.776f) / 893.48f ;

@@ -66,8 +66,8 @@ AniCardLibFileInfo::AniCardLibFileInfo( const char* fileName )
 
 AniCardLibFileInfo::~AniCardLibFileInfo()
 {
-	delete[] cardData;
-	delete[] cardImageData;
+	if(cardData) delete[] cardData;
+	if(cardImageData) delete[] cardImageData;
 	geos.clear();
 	geometryManager.destroy();
 	bufferManager.destroy();
