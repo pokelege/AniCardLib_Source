@@ -1,3 +1,4 @@
+#pragma once
 #include <AniCardLibExportHeader.h>
 #include <Graphics\GraphicsBufferManager.h>
 #include <Graphics\GraphicsGeometryManager.h>
@@ -37,7 +38,7 @@ class ANICARDLIB_SHARED AniCardLibFileInfo
 	std::vector<GeometryInfo*> geos;
 	std::vector<TextureInfo*> textures;
 public:
-	AniCardLibFileInfo() : cardData(0) , cardImageData(0) {}
+	AniCardLibFileInfo();
 	AniCardLibFileInfo( const char* fileName );
 	~AniCardLibFileInfo();
 
@@ -50,6 +51,8 @@ public:
 	unsigned int getGeometryListSize();
 	TextureInfo* getTexture( const unsigned int& id );
 	unsigned int getTextureListSize();
+
+	unsigned char* getPicturePointer( const unsigned int& id );
 
 	bool save( const char* fileName );
 };

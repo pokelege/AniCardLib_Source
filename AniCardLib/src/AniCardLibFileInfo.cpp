@@ -3,6 +3,12 @@
 #include <Marker.h>
 #include <SOIL.h>
 #include <TextureDimensions.h>
+AniCardLibFileInfo::AniCardLibFileInfo() : cardData(0) , cardImageData(0) , numCards(0) , numModels(0) , numTextures(0) , sizeOfCardImageData(0) , sizeOfModelData(0) , sizeOfTextureData(0)
+{
+	bufferManager.initialize();
+	geometryManager.initialize();
+	textureManager.initialize();
+}
 AniCardLibFileInfo::AniCardLibFileInfo( const char* fileName )
 {
 	std::ifstream theFile( fileName , std::ios::ios_base::binary | std::ios::ios_base::in );
@@ -27,7 +33,7 @@ AniCardLibFileInfo::AniCardLibFileInfo( const char* fileName )
 	theFile.read( ( char* ) textureData , sizeOfTextureData );
 
 	unsigned int imageOffset = 0;
-	for ( unsigned int i = 0; i < numCards; +i )
+	for ( unsigned int i = 0; i < numCards; ++i )
 	{
 		Marker* markers = (Marker*)cardData;
 		markers[i].imageOffset = (imageOffset);
@@ -67,19 +73,28 @@ AniCardLibFileInfo::~AniCardLibFileInfo()
 	bufferManager.destroy();
 }
 
-int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel = -1 , const int& linkedTexture = -1 )
+int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel , const int& linkedTexture)
 {
 	int channels = 0, width, height;
 	unsigned char* bytes = SOIL_load_image( fileName , &width , &height , &channels , SOIL_LOAD_RGBA );
 
-	void* lastCardImageData = cardImageData;
-	cardImageData = new char[sizeOfCardImageData + ( width * height )];
-	memcpy( cardImageData , lastCardImageData , sizeOfCardImageData );
-	delete[] lastCardImageData;
+	if ( numCards > 0 )
+	{
+		void* lastCardImageData = cardImageData;
+		cardImageData = new char[sizeOfCardImageData + ( width * height )];
+		memcpy( cardImageData , lastCardImageData , sizeOfCardImageData );
+		delete[] lastCardImageData;
 
-	void* lastCardData = cardData;
-	cardData = new Marker[numCards + 1];
-	memcpy( cardData , lastCardData , sizeof( Marker ) * numCards );
+		void* lastCardData = cardData;
+
+		cardData = new Marker[numCards + 1];
+		memcpy( cardData , lastCardData , sizeof( Marker ) * numCards );
+	}
+	else
+	{
+		cardImageData = new char[( width * height )];
+		cardData = new Marker[1];
+	}
 	for ( int y = 0; y < height; ++y )
 	{
 		for ( int x = 0; x < width; ++x )
@@ -102,7 +117,7 @@ int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel
 	sizeOfCardImageData += width * height;
 	return numCards++;
 }
-int AniCardLibFileInfo::addModel( const char* fileName , const int& cardToLink = -1 )
+int AniCardLibFileInfo::addModel( const char* fileName , const int& cardToLink  )
 {
 	GeometryInfo* theGeo = geometryManager.addPMDGeometry( fileName , bufferManager );
 	if ( !theGeo )
@@ -118,7 +133,7 @@ int AniCardLibFileInfo::addModel( const char* fileName , const int& cardToLink =
 	return numModels++;
 }
 
-int AniCardLibFileInfo::addTexture( const char* fileName , const int& cardToLink = -1 )
+int AniCardLibFileInfo::addTexture( const char* fileName , const int& cardToLink)
 {
 	TextureInfo* theTexture = textureManager.addTexture( fileName , 0 );
 	if ( !theTexture ) return -1;
@@ -161,6 +176,13 @@ unsigned int AniCardLibFileInfo::getTextureListSize()
 	return textures.size();
 }
 
+unsigned char* AniCardLibFileInfo::getPicturePointer( const unsigned int& id )
+{
+	if ( id >= numCards ) return 0;
+	Marker* markers = ( Marker* ) cardData;
+	return ( unsigned char * ) (markers[id].imageOffset + ( unsigned int ) cardImageData);
+}
+
 bool AniCardLibFileInfo::save( const char* fileName )
 {
 	std::fstream stream( fileName , std::ios_base::binary | std::ios_base::out | std::ios_base::trunc );
@@ -180,5 +202,36 @@ bool AniCardLibFileInfo::save( const char* fileName )
 
 	std::string textureData;
 	std::vector<TextureDimensions> textureDimensions;
+	for ( unsigned int i = 0; i < textures.size(); ++i )
+	{
+		TextureDimensions texDim;
+		int width , height;
+		textureData += textureManager.saveRawTexture( textures[i] ,&width , &height );
+		texDim.width = width;
+		texDim.height = height;
+		textureDimensions.push_back( texDim );
+	}
+	sizeOfTextureData = textureData.size();
 
+	stream.write( (char*)this , sizeof( unsigned int ) * 6 );
+	stream.write( ( char* ) cardData , sizeof( Marker ) * numCards );
+	stream.write( ( char* ) cardImageData , sizeOfCardImageData );
+	for ( unsigned int i = 0; i < modelDataSize.size(); ++i )
+	{
+		stream.write( ( char* ) &modelDataSize[i] , sizeof( unsigned int ) );
+	}
+	modelDataSize.clear();
+
+	stream.write( modelData.c_str() , modelData.size() );
+
+	for ( unsigned int i = 0; i < textureDimensions.size(); ++i )
+	{
+		stream.write( ( char* ) &textureDimensions[i] , sizeof( TextureDimensions ) );
+	}
+	textureDimensions.clear();
+
+	stream.write( textureData.c_str() , textureData.size() );
+	textureData.clear();
+	stream.close();
+	return true;
 }

@@ -3,8 +3,7 @@
 #include <AniCardLibExportHeader.h>
 #include <ARMarkerDetector.h>
 #include <glm.hpp>
-#include <Marker.h>
-
+#include <AniCardLibFileInfo.h>
 class ANICARDLIB_SHARED MarkerPack
 {
 	struct CompareWithMarkerInfo
@@ -24,7 +23,7 @@ class ANICARDLIB_SHARED MarkerPack
 		float theAs[8];
 	};
 
-	std::vector<Marker> markers;
+	AniCardLibFileInfo cards;
 	unsigned char* debugPicture;
 	long width , height;
 	unsigned int numUsing;

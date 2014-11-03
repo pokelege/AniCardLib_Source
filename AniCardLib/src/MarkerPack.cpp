@@ -6,7 +6,8 @@
 #include <iostream>
 #include <future>
 #include <Clock.h>
-
+#include <AniCardLibFileInfo.h>
+#include <Marker.h>
 MarkerPack MarkerPack::global;
 
 bool MarkerPack::getPicture( unsigned char** bytes , long* width , long* height )
@@ -31,29 +32,12 @@ bool MarkerPack::finishedUsing()
 
 void MarkerPack::addMarker( const char* file )
 {
-	Marker marker;
-	int channels = 0;
-	unsigned char* bytes = SOIL_load_image( file , &marker.width , &marker.height , &channels , SOIL_LOAD_RGBA );
-	marker.bytes = new unsigned char[marker.height * marker.width];
-	//std::cout << channels << std::endl;
-	for ( int y = 0; y < marker.height; ++y )
-	{
-		for ( int x = 0; x < marker.width; ++x )
-		{
-			unsigned long iOffset = ( unsigned long ) ( ( y * 4 * marker.width ) + ( x * 4 ) );
-			float grayPixel = ( ( float ) bytes[iOffset] + ( float ) bytes[iOffset + 1] + ( float ) bytes[iOffset + 2] ) / 3.0f;
-			unsigned char result = 0;
-			if ( grayPixel > 128 ) result = 255;
-			unsigned long i = ( unsigned long ) ( ( y * marker.width ) + ( x ) );
-			marker.bytes[i] = ( unsigned char ) result;
-		}
-	}
-	markers.push_back( marker );
+	cards.addMarker( file );
 }
 
 bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long pictureWidth , long pictureHeight )
 {
-	if ( !markers.size() ) return false;
+	if ( !cards.getMarkerListSize() ) return false;
 
 
 
@@ -69,8 +53,8 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 
 	FoundMarkerInfo resultantMarker = getSmallestDissimilarity( quadInfo );
 
-	float markerWidth = ( ( float ) markers[0].width ) / pictureWidth;
-	float markerHeight = ( ( float ) markers[0].height ) / pictureHeight;
+	float markerWidth = ( ( float ) cards.getMarker(resultantMarker.markerID )->width) / pictureWidth;
+	float markerHeight = ( ( float ) cards.getMarker( resultantMarker.markerID )->height ) / pictureHeight;
 	float* vectorMult = new float[8];
 	vectorMult[0] = ( float ) ( resultantMarker.points[0].x - ( pictureWidth / 2 ) ) / 2000.0f;
 	vectorMult[1] = ( float ) ( resultantMarker.points[1].x - ( pictureWidth / 2 ) ) / 2000.0f;
@@ -300,8 +284,9 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWithMarkerInfo info )
 {
 	FoundMarkerInfo markerFoundInfo;
-	float markerWidth = ( float ) markers[info.marker].width;
-	float markerHeight = ( float ) markers[info.marker].height;
+	
+	float markerWidth = ( float ) cards.getMarker( info.marker )->width;
+	float markerHeight = ( float ) cards.getMarker( info.marker )->height;
 	float* vectorMult = new float[8];
 	vectorMult[0] = ( float ) ( info.pos[0].x );
 	vectorMult[1] = ( float ) ( info.pos[1].x );
@@ -376,7 +361,8 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				if ( Xi < 0 || Yi < 0 || Xi >= info.pictureWidth || Yi >= info.pictureHeight ) continue;
 				unsigned char picturePixel = 0;
 				if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
-				unsigned long toAdd = picturePixel - markers[info.marker].bytes[( y * markers[info.marker].width ) + x];
+				unsigned char* thePointer = cards.getPicturePointer( info.marker );
+				unsigned long toAdd = picturePixel - thePointer[( y * cards.getMarker( info.marker )->width ) + x];
 				difference += toAdd * toAdd;
 			}
 		}
@@ -433,7 +419,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerDissimilarity( CompareWithMarke
 MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMarkerInfo info )
 {
 	std::vector < std::future<FoundMarkerInfo>> closestMarkerCorners;
-	for ( unsigned int i = 0; i < markers.size(); ++i )
+	for ( unsigned int i = 0; i < cards.getMarkerListSize(); ++i )
 	{
 		CompareWithMarkerInfo compareInfo;
 		compareInfo.marker = i;
