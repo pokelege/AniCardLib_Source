@@ -56,12 +56,23 @@ Editor::Editor()
 	connect( saveButton , SIGNAL( clicked() ) , this , SLOT( save() ) );
 	connect( loadButton , SIGNAL( clicked() ) , this , SLOT( load() ) );
 	connect( &preview , SIGNAL( initialized() ) , this , SLOT( initialize() ) );
+	connect( arCardsList , SIGNAL( currentRowChanged( int ) ) , this , SLOT(selectCard( int )) );
 	preview.setMinimumWidth( 1280 );
 	preview.setMinimumHeight( 720 );
 }
 void Editor::initialize()
 {
 	file = new AniCardLibFileInfo();
+}
+
+void Editor::selectCard( int selected )
+{
+	if ( selected < 0 ) return;
+	Marker* marker = file->getMarker( selected );
+	if ( marker )
+	{
+		preview.setCard( file->getPicturePointer( selected ) , marker->width , marker->height);
+	}
 }
 
 void Editor::addCard()

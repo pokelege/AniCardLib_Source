@@ -12,6 +12,7 @@ class Editor : public QWidget
 	Preview preview;
 private slots:
 void initialize();
+void selectCard( int selected );
 void addCard();
 void addModel();
 void linkModel();
@@ -19,6 +20,8 @@ void addTexture();
 void linkTexture();
 void save();
 void load();
+
+
 public:
 	Editor();
 };

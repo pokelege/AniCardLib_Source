@@ -76,12 +76,12 @@ AniCardLibFileInfo::~AniCardLibFileInfo()
 int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel , const int& linkedTexture)
 {
 	int channels = 0, width, height;
-	unsigned char* bytes = SOIL_load_image( fileName , &width , &height , &channels , SOIL_LOAD_RGBA );
+	unsigned char* bytes = SOIL_load_image( fileName , &width , &height , &channels , SOIL_LOAD_RGBA);
 
 	if ( numCards > 0 )
 	{
 		void* lastCardImageData = cardImageData;
-		cardImageData = new char[sizeOfCardImageData + ( width * height )];
+		cardImageData = new char[sizeOfCardImageData + ( width * height * 4 )];
 		memcpy( cardImageData , lastCardImageData , sizeOfCardImageData );
 		delete[] lastCardImageData;
 
@@ -92,29 +92,21 @@ int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel
 	}
 	else
 	{
-		cardImageData = new char[( width * height )];
+		cardImageData = new char[( width * height * 4 )];
 		cardData = new Marker[1];
 	}
-	for ( int y = 0; y < height; ++y )
-	{
-		for ( int x = 0; x < width; ++x )
-		{
-			unsigned long iOffset = ( unsigned long ) ( ( y * 4 * width ) + ( x * 4 ) );
-			float grayPixel = ( ( float ) bytes[iOffset] + ( float ) bytes[iOffset + 1] + ( float ) bytes[iOffset + 2] ) / 3.0f;
-			unsigned char result = 0;
-			if ( grayPixel > 128 ) result = 255;
-			unsigned long i = ( unsigned long ) ( ( y * width ) + ( x ) ) + sizeOfCardImageData;
-			unsigned char* pixelLocation = (unsigned char*)cardImageData;
-			pixelLocation[i] = ( unsigned char ) result;
-		}
-	}
+
+	unsigned char* pixelLocation = ( unsigned char* ) cardImageData;
+	memcpy( &pixelLocation[sizeOfCardImageData] , bytes , width * height * 4 );
+
 	Marker* markers = ( Marker* ) cardData;
 	markers[numCards].width = width;
 	markers[numCards].height = height;
 	markers[numCards].linkedModel = linkedModel;
 	markers[numCards].linkedTexture = linkedTexture;
 	markers[numCards].imageOffset = sizeOfCardImageData;
-	sizeOfCardImageData += width * height;
+	sizeOfCardImageData += width * height * 4;
+	SOIL_free_image_data( bytes );
 	return numCards++;
 }
 int AniCardLibFileInfo::addModel( const char* fileName , const int& cardToLink  )

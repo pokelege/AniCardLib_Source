@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Preview.h'
 **
-** Created: Mon Nov 3 22:03:01 2014
+** Created: Tue Nov 4 14:02:12 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.0)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_Preview[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,11 +33,16 @@ static const uint qt_meta_data_Preview[] = {
  // signals: signature, parameters, type, tag, flags
        9,    8,    8,    8, 0x05,
 
+ // slots: signature, parameters, type, tag, flags
+      23,    8,    8,    8, 0x08,
+      32,    8,    8,    8, 0x08,
+
        0        // eod
 };
 
 static const char qt_meta_stringdata_Preview[] = {
-    "Preview\0\0initialized()\0"
+    "Preview\0\0initialized()\0update()\0"
+    "paintGL()\0"
 };
 
 void Preview::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -47,6 +52,8 @@ void Preview::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         Preview *_t = static_cast<Preview *>(_o);
         switch (_id) {
         case 0: _t->initialized(); break;
+        case 1: _t->update(); break;
+        case 2: _t->paintGL(); break;
         default: ;
         }
     }
@@ -85,9 +92,9 @@ int Preview::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 1)
+        if (_id < 3)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 1;
+        _id -= 3;
     }
     return _id;
 }

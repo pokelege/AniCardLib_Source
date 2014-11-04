@@ -408,7 +408,13 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				unsigned char picturePixel = 0;
 				if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
 				unsigned char* thePointer = cards.getPicturePointer( info.marker );
-				unsigned long toAdd = picturePixel - thePointer[( y * cards.getMarker( info.marker )->width ) + x];
+
+				unsigned long iOffset = ( unsigned long ) ( ( y * 4 * cards.getMarker( info.marker )->width ) + ( x * 4 ) );
+				float grayPixel = ( ( float ) thePointer[iOffset] + ( float ) thePointer[iOffset + 1] + ( float ) thePointer[iOffset + 2] ) / 3.0f;
+				unsigned char result = 0;
+				if ( grayPixel > 128 ) result = 255;
+
+				unsigned long toAdd = picturePixel - result;
 				difference += toAdd * toAdd;
 			}
 		}
