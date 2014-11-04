@@ -101,16 +101,16 @@ void Preview::setCard( unsigned char* cardImage , const unsigned int& width , co
 	changingTexture = true;
 	while ( drawing );
 	GraphicsTextureManager::globalTextureManager.editTexture( cardTexture , (char*)cardImage , width , height , 0);
-	unsigned int minDim = std::min( width , height);
+	unsigned int maxDim = std::max( width , height);
 	if ( minDim == width )
 	{
 		cardScale.x = 1;
-		cardScale.y = ((float) minDim) / height;
+		cardScale.y = ( ( float ) maxDim ) / height;
 	}
 	else
 	{
 		cardScale.y = 1;
-		cardScale.x = ((float)minDim) / width;
+		cardScale.x = ( ( float ) maxDim ) / width;
 	}
 	changingTexture = false;
 }
