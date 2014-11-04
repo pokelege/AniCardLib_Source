@@ -30,9 +30,55 @@ bool MarkerPack::finishedUsing()
 	else return false;
 }
 
-void MarkerPack::addMarker( const char* file )
+int MarkerPack::addMarker( const char* fileName , const int& linkedModel , const int& linkedTexture )
 {
-	cards.addMarker( file );
+	return cards.addMarker( fileName , linkedModel , linkedTexture );
+}
+int MarkerPack::addModel( const char* fileName , const int& cardToLink)
+{
+	return cards.addModel( fileName , cardToLink );
+}
+int MarkerPack::addTexture( const char* fileName , const int& cardToLink )
+{
+	return cards.addTexture( fileName , cardToLink );
+}
+Marker* MarkerPack::getMarker( const unsigned int& id )
+{
+	return cards.getMarker( id );
+}
+unsigned int MarkerPack::getMarkerListSize()
+{
+	return cards.getMarkerListSize();
+}
+GeometryInfo* MarkerPack::getGeometry( const unsigned int& id )
+{
+	return cards.getGeometry( id );
+}
+unsigned int MarkerPack::getGeometryListSize()
+{
+	return cards.getGeometryListSize();
+}
+TextureInfo* MarkerPack::getTexture( const unsigned int& id )
+{
+	return cards.getTexture( id );
+}
+unsigned int MarkerPack::getTextureListSize()
+{
+	return cards.getTextureListSize();
+}
+
+unsigned char* MarkerPack::getPicturePointer( const unsigned int& id )
+{
+	return cards.getPicturePointer( id );
+}
+
+bool MarkerPack::save( const char* fileName )
+{
+	return cards.save( fileName );
+}
+void MarkerPack::load( const char* fileName )
+{
+	cards = AniCardLibFileInfo( fileName );
 }
 
 bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long pictureWidth , long pictureHeight )

@@ -1,12 +1,17 @@
 #pragma once
 #include <QtGui\QWidget>
-class QListView;
+#include <AniCardLibFileInfo.h>
+#include <Preview.h>
+class QListWidget;
 class Editor : public QWidget
 {
 	Q_OBJECT;
 
-	QListView* arCardsList, *modelsList, *texturesList;
+	QListWidget* arCardsList , *modelsList , *texturesList;
+	AniCardLibFileInfo* file;
+	Preview preview;
 private slots:
+void initialize();
 void addCard();
 void addModel();
 void linkModel();
