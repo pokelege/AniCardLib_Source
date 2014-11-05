@@ -17,6 +17,9 @@
 #include <Misc\Clock.h>
 #include <Graphics\AnimationRenderingInfo.h>
 #include <Graphics\GraphicsSharedUniformManager.h>
+#include <Input\MouseInput.h>
+#include <Input\FirstPersonCameraInput.h>
+#include <DebugMemory.h>
 void Preview::initializeGL()
 {
 	CommonGraphicsCommands::initializeGlobalGraphics();
@@ -49,7 +52,7 @@ void Preview::initializeGL()
 	
 	GameObject* modelObject = GameObjectManager::globalGameObjectManager.addGameObject();
 	modelObject->addComponent( modelRenderable );
-	modelObject->addComponent( new AnimationRenderingInfo );
+	modelObject->addComponent( animations = new AnimationRenderingInfo );
 	modelObject->scale = glm::vec3( 5 , 5 , 5 );
 	Camera* modelCamera = cameras.addCamera();
 	modelCamera->initializeRenderManagers();
@@ -57,6 +60,10 @@ void Preview::initializeGL()
 	GameObject* modelViewer = GameObjectManager::globalGameObjectManager.addGameObject();
 	modelViewer->addComponent( modelCamera );
 	modelViewer->translate = glm::vec3( 0 , 0 , 25 );
+	fpsInput = new FirstPersonCameraInput;
+	fpsInput->moveSensitivity = 1;
+	fpsInput->rotationSensitivity = 0.1f;
+	modelViewer->addComponent( fpsInput );
 
 	cardRenderer.initialize( 1 );
 	GeometryInfo* plane = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/plane.pmd" , GraphicsBufferManager::globalBufferManager );
@@ -86,9 +93,46 @@ void Preview::initializeGL()
 	GameObject* cardViewer = GameObjectManager::globalGameObjectManager.addGameObject();
 	cardViewer->addComponent( cardCamera );
 
+
+	MouseInput::globalMouseInput.updateOldMousePosition = false;
+
+	setMouseTracking( true );
+	QCursor c = cursor();
+	c.setPos( mapToGlobal( QPoint( width() / 2 , height() / 2 ) ) );
+	c.setShape( Qt::BlankCursor );
+	setCursor( c );
+	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( width() / 2 , height() / 2 ) );
+
 	connect( &updateTimer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	updateTimer.start( 0 );
 	emit initialized();
+}
+
+void Preview::mouseMoveEvent( QMouseEvent* e )
+{
+	e;
+	QCursor c = cursor();
+	QPoint mapFromGlobal = this->mapFromGlobal( c.pos() );
+	if ( GetAsyncKeyState( VK_LBUTTON ) < 0 && mapFromGlobal.x() >= 0 && mapFromGlobal.x() <= width() &&
+		 mapFromGlobal.y() >= 0 && mapFromGlobal.y() <= height() && MouseInput::globalMouseInput.oldMousePosition != glm::vec2( c.pos().x() , c.pos().y() ) )
+	{
+		if ( !MouseInput::globalMouseInput.getDeltaTracking() )MouseInput::globalMouseInput.setDeltaTracking( true );
+		glm::vec2 oldPos = MouseInput::globalMouseInput.oldMousePosition;
+		MouseInput::globalMouseInput.updateMousePosition( glm::vec2( c.pos().x() , c.pos().y() ) );
+
+		c.setPos( QPoint( oldPos.x , oldPos.y ) );
+		c.setShape( Qt::BlankCursor );
+	}
+	else if ( MouseInput::globalMouseInput.oldMousePosition != glm::vec2( c.pos().x() , c.pos().y() ) )
+	{
+		c.setShape( Qt::ArrowCursor );
+		if ( MouseInput::globalMouseInput.getDeltaTracking() )MouseInput::globalMouseInput.setDeltaTracking( false );
+		MouseInput::globalMouseInput.oldMousePosition = glm::vec2( c.pos().x() , c.pos().y() );
+		MouseInput::globalMouseInput.updateMousePosition( glm::vec2( c.pos().x() , c.pos().y() ) );
+	}
+	clearFocus();
+	setCursor( c );
+	setFocus();
 }
 
 void Preview::update()
@@ -118,6 +162,7 @@ void Preview::update()
 	GameObjectManager::globalGameObjectManager.earlyUpdateParents();
 	GameObjectManager::globalGameObjectManager.updateParents();
 	GameObjectManager::globalGameObjectManager.lateUpdateParents();
+	MouseInput::globalMouseInput.mouseDelta = glm::vec2();
 	repaint();
 }
 
@@ -156,4 +201,14 @@ void Preview::setCard( const unsigned char* cardImage , const unsigned int& widt
 	modelRenderable->geometryInfo = cardGeo;
 	modelRenderable->swapTexture( cardModelTexture , 0 );
 	changingCard = false;
+}
+
+Preview::~Preview()
+{
+	GameObjectManager::globalGameObjectManager.destroy();
+	cameras.destroy();
+	cardRenderer.destroy();
+	CommonGraphicsCommands::destroyGlobalGraphics();
+	delete animations;
+	delete fpsInput;
 }

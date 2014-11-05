@@ -8,6 +8,7 @@ struct TextureInfo;
 class GameObject;
 struct AnimationRenderingInfo;
 class QTimer;
+struct RenderableInfo;
 class War : public QGLWidget
 {
 	Q_OBJECT;
@@ -15,9 +16,12 @@ class War : public QGLWidget
 	WebCamSource* cameraSource;
 	TextureInfo* planeTexture, *planeDebugTexture;
 	GameObject* plane;
-	AnimationRenderingInfo* diamondAnimation, *spadeAnimation;
+	AnimationRenderingInfo* animation, *animation2;
 	QTimer* timer;
-	GameObject* diamond, *spade;
+	GameObject* player1, *player2;
+	RenderableInfo* renderable1, *renderable2;
+	int maxFails;
+	int player1Fails , player2Fails;
 	glm::mat4 transform;
 	glm::mat4 identity;
 	int texture;

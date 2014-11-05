@@ -7,6 +7,7 @@
 #include <QtGui\QFileDialog>
 #include <QtCore\QCoreApplication>
 #include <Marker.h>
+#include <DebugMemory.h>
 Editor::Editor()
 {
 	QVBoxLayout* mainLayout = new QVBoxLayout;
@@ -157,4 +158,9 @@ void Editor::load()
 		texturesList->addItem( QString::number( i ) );
 	}
 	
+}
+
+Editor::~Editor()
+{
+	delete file;
 }

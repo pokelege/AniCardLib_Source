@@ -69,8 +69,10 @@ AniCardLibFileInfo::~AniCardLibFileInfo()
 	if(cardData) delete[] cardData;
 	if(cardImageData) delete[] cardImageData;
 	geos.clear();
+	textures.clear();
 	geometryManager.destroy();
 	bufferManager.destroy();
+	textureManager.destroy();
 }
 
 int AniCardLibFileInfo::addMarker( const char* fileName , const int& linkedModel , const int& linkedTexture)

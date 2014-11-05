@@ -30,13 +30,14 @@
 War::War() :cameraSource(0)
 {
 	texture = 1;
+	maxFails = 100;
 }
 War::~War()
 {
 	CommonGraphicsCommands::destroyGlobalGraphics();
 	GameObjectManager::globalGameObjectManager.destroy();
-	delete diamondAnimation;
-	delete spadeAnimation;
+	delete animation;
+	delete animation2;
 	delete timer;
 	delete cameraSource;
 	AudioController::globalAudioController.destroy();
@@ -94,68 +95,54 @@ void War::initializeGL()
 	camera->direction = glm::vec3( 0 , 0 , -1 );
 	player->addComponent( camera );
 
-	GeometryInfo* diamondGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/diamond.pmd" , GraphicsBufferManager::globalBufferManager );
-	diamondGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
-	diamondGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
-	diamondGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
-	diamondGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
-
-	TextureInfo* diamondTexture = GraphicsTextureManager::globalTextureManager.addTexture( "assets/textures/diamond.png" );
-
-	Renderable* diamondRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
-	diamondRenderable->initialize( 10 , 1 );
-	diamondRenderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
-	diamondRenderable->geometryInfo = diamondGeo;
-	diamondRenderable->shaderInfo = shader2;
-	diamondRenderable->alphaBlendingEnabled = false;
-	diamondRenderable->culling = CT_NONE;
-	diamondRenderable->addTexture( diamondTexture );
+	renderable1 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	renderable1->initialize( 10 , 1 );
+	renderable1->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	renderable1->shaderInfo = shader2;
+	renderable1->alphaBlendingEnabled = false;
+	renderable1->culling = CT_NONE;
 	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
-	diamondAnimation = new AnimationRenderingInfo;
+	animation = new AnimationRenderingInfo;
 	
-	diamond = GameObjectManager::globalGameObjectManager.addGameObject();
-	diamond->addComponent( diamondRenderable );
-	diamond->addComponent( diamondAnimation );
-	diamond->rotate = glm::vec3( 90 , 0 , 0 );
-	diamond->active = false;
+	player1 = GameObjectManager::globalGameObjectManager.addGameObject();
+	player1->addComponent( renderable1 );
+	player1->addComponent( animation );
+	player1->rotate = glm::vec3( 90 , 0 , 0 );
+	player1->active = false;
 
-	GeometryInfo* spadeGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/spade.pmd" , GraphicsBufferManager::globalBufferManager );
-	spadeGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
-	spadeGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
-	spadeGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
-	spadeGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
-
-	TextureInfo* spadeTexture = GraphicsTextureManager::globalTextureManager.addTexture( "assets/textures/spade.png" );
-
-	Renderable* spadeRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
-	spadeRenderable->initialize( 10 , 1 );
-	spadeRenderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
-	spadeRenderable->geometryInfo = spadeGeo;
-	spadeRenderable->shaderInfo = shader2;
-	spadeRenderable->alphaBlendingEnabled = false;
-	spadeRenderable->culling = CT_NONE;
-	spadeRenderable->addTexture( spadeTexture );
+	renderable2 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	renderable2->initialize( 10 , 1 );
+	renderable2->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	renderable2->shaderInfo = shader2;
+	renderable2->alphaBlendingEnabled = false;
+	renderable2->culling = CT_NONE;
 	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
-	spadeAnimation = new AnimationRenderingInfo;
+	animation2 = new AnimationRenderingInfo;
 
-	spade = GameObjectManager::globalGameObjectManager.addGameObject();
-	spade->addComponent( spadeRenderable );
-	spade->addComponent( spadeAnimation );
-	spade->rotate = glm::vec3( 90 , 0 , 0 );
-	spade->active = false;
+	player2 = GameObjectManager::globalGameObjectManager.addGameObject();
+	player2->addComponent(renderable2 );
+	player2->addComponent( animation2 );
+	player2->rotate = glm::vec3( 90 , 0 , 0 );
+	player2->active = false;
 
 	
-	MarkerPack::global.addMarker( "assets/textures/Cards/AS.png" );
-	MarkerPack::global.addMarker( "assets/textures/Cards/AD.png" );
-
+	MarkerPack::global.load( "assets/cardPack.aclf" );
+	for ( unsigned int i = 0; i < MarkerPack::global.getGeometryListSize(); ++i )
+	{
+		GeometryInfo* geoLoad = MarkerPack::global.getGeometry( i );
+		if ( !geoLoad ) continue;
+		geoLoad->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+		geoLoad->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+		geoLoad->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+		geoLoad->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+	}
 	AudioController::globalAudioController.initialize();
 	AudioController::globalAudioController.playSound( "assets/audio/music.mp3" , true );
 	timer = new QTimer();
 	connect( timer , SIGNAL( timeout() ) , this , SLOT( update() ) );
 	timer->start( 0 );
 }
-static int fails = 0;
-static int maxFails = 100;
+
 void War::update()
 {
 	cameraSource->update();
@@ -171,31 +158,45 @@ void War::update()
 	{
 		if ( list && list->size() )
 		{
-			fails = 0;
+			player1Fails = 0;
 			//transform = list->at( 0 );
 			//transform *= glm::inverse( transform );
 			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) / 2 , ( list->at( 0 ).center.y * plane->scale.y ) / 2 , 0 );
 			//diamond->translate = characterPos;
-			diamond->active = false;
-			spade->active = false;
-			//std::cout << list->size() << std::endl;
-			switch ( (int)list->at(0).cardIndex )
+			player1->translate = characterPos;
+			renderable1->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex );
+			renderable1->swapTexture( MarkerPack::global.getCardTexture( list->at( 0 ).cardIndex ) , 0 );
+			player1->active = true;
+
+			if ( list->size() < 2 )
 			{
-				case (0):
-					spade->translate = characterPos;
-					spade->active = true;
-					break;
-				case (1):
-					diamond->translate = characterPos;
-					diamond->active = true;
-					break;
+				if ( player2->active && player2Fails < maxFails ) ++player2Fails;
+			}
+			else
+			{
+				player2Fails = 0;
+				//transform = list->at( 0 );
+				//transform *= glm::inverse( transform );
+				glm::vec3 characterPos2( ( list->at( 1 ).center.x * plane->scale.x ) / 2 , ( list->at( 1 ).center.y * plane->scale.y ) / 2 , 0 );
+				//diamond->translate = characterPos;
+				player2->translate = characterPos;
+				renderable2->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 1 ).cardIndex );
+				renderable2->swapTexture( MarkerPack::global.getCardTexture( list->at( 1 ).cardIndex ) , 0 );
+				player2->active = true;
 			}
 		}
-		else if ( diamond->active || spade->active ) fails++;
-		if ( (diamond->active || spade->active) && fails >= maxFails )
+		else
 		{
-			diamond->active = false;
-			spade->active = false;
+			if ( player1->active && player1Fails < maxFails ) ++player1Fails;
+			if ( player2->active && player2Fails < maxFails ) ++player2Fails;
+		}
+		if ( player1->active && player1Fails >= maxFails )
+		{
+			player1->active = false;
+		}
+		if ( player2->active && player2Fails >= maxFails )
+		{
+			player2->active = false;
 		}
 		ARMarkerDetector::global.finishedUsingMarkerFound();
 	}

@@ -54,6 +54,12 @@ GeometryInfo* MarkerPack::getGeometry( const unsigned int& id )
 {
 	return cards.getGeometry( id );
 }
+
+GeometryInfo* MarkerPack::getCardGeometry( const unsigned int& id )
+{
+	return cards.getCardGeometry( id );
+}
+
 unsigned int MarkerPack::getGeometryListSize()
 {
 	return cards.getGeometryListSize();
@@ -61,6 +67,10 @@ unsigned int MarkerPack::getGeometryListSize()
 TextureInfo* MarkerPack::getTexture( const unsigned int& id )
 {
 	return cards.getTexture( id );
+}
+TextureInfo* MarkerPack::getCardTexture( const unsigned int& id )
+{
+	return cards.getCardTexture( id );
 }
 unsigned int MarkerPack::getTextureListSize()
 {
@@ -393,6 +403,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 		markerFoundInfo.theAs[6] = vectorMult[6];
 		markerFoundInfo.theAs[7] = vectorMult[7];
 
+		std::cout << "doing card check" << std::endl;
 		//AniCardLib::Clock c;
 		//c.Start();
 		unsigned long difference = 0;
@@ -407,15 +418,26 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				if ( Xi < 0 || Yi < 0 || Xi >= info.pictureWidth || Yi >= info.pictureHeight ) continue;
 				unsigned char picturePixel = 0;
 				if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
-				unsigned char* thePointer = cards.getPicturePointer( info.marker );
-
-				unsigned long iOffset = ( unsigned long ) ( ( y * 4 * cards.getMarker( info.marker )->width ) + ( x * 4 ) );
-				float grayPixel = ( ( float ) thePointer[iOffset] + ( float ) thePointer[iOffset + 1] + ( float ) thePointer[iOffset + 2] ) / 3.0f;
+				//unsigned char* thePointer = cards.getPicturePointer( info.marker );
+				std::cout << "pass picture test" << std::endl;
+				//unsigned long iOffset = ( unsigned long ) ( ( y * 4 * cards.getMarker( info.marker )->width ) + ( x * 4 ) );
+				//float grayPixel = ( ( float ) thePointer[iOffset] + ( float ) thePointer[iOffset + 1] + ( float ) thePointer[iOffset + 2] ) / 3.0f;
 				unsigned char result = 0;
-				if ( grayPixel > 128 ) result = 255;
+				//if ( grayPixel > 128 ) result = 255;
 
 				unsigned long toAdd = picturePixel - result;
 				difference += toAdd * toAdd;
+
+				std::cout << "pass card test" << std::endl;
+				//float Xi = ( vectorMult[0] * x + vectorMult[1] * y + vectorMult[2] ) /
+				//	( vectorMult[6] * x + vectorMult[7] * y + 1 );
+				//float Yi = ( vectorMult[3] * x + vectorMult[4] * y + vectorMult[5] ) /
+				//	( vectorMult[6] * x + vectorMult[7] * y + 1 );
+				//if ( Xi < 0 || Yi < 0 || Xi >= info.pictureWidth || Yi >= info.pictureHeight ) continue;
+				//unsigned char picturePixel = 0;
+				//if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
+				//unsigned long toAdd = picturePixel - markers[info.marker].bytes[( y * markers[info.marker].width ) + x];
+				//difference += toAdd * toAdd;
 			}
 		}
 		//std::cout << "calctimepic " << c.Stop() << std::endl;

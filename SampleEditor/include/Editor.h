@@ -24,4 +24,5 @@ void load();
 
 public:
 	Editor();
+	~Editor();
 };

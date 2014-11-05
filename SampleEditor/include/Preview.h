@@ -8,6 +8,8 @@ struct TextureInfo;
 class GameObject;
 struct RenderableInfo;
 struct GeometryInfo;
+class FirstPersonCameraInput;
+struct AnimationRenderingInfo;
 class Preview : public QGLWidget
 {
 	Q_OBJECT;
@@ -16,6 +18,8 @@ class Preview : public QGLWidget
 	TextureInfo* cardTexture;
 	GameObject* cardPlane;
 	RenderableInfo* modelRenderable;
+	AnimationRenderingInfo* animations;
+	FirstPersonCameraInput* fpsInput;
 	GraphicsRenderingManager cardRenderer;
 	GraphicsCameraManager cameras;
 	bool drawing,changingCard;
@@ -25,9 +29,11 @@ private slots:
 
 protected:
 	void initializeGL();
+	void mouseMoveEvent( QMouseEvent* e );
 signals:
 void initialized();
 
 public:
+	~Preview();
 	void setCard( const unsigned char* cardImage , const unsigned int& width , const unsigned int& height, GeometryInfo* cardGeo = 0, TextureInfo* cardModelTexture = 0 );
 };
