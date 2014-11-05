@@ -153,6 +153,15 @@ GeometryInfo* AniCardLibFileInfo::getGeometry( const unsigned int& id )
 	if ( id >= geos.size() ) return 0;
 	return geos.at( id );
 }
+
+GeometryInfo* AniCardLibFileInfo::getCardGeometry( const unsigned int& id )
+{
+	Marker* marker = getMarker( id );
+	if( !marker ) return 0;
+	if ( marker->linkedModel < 0 ) return 0;
+	return getGeometry( marker->linkedModel );
+}
+
 unsigned int AniCardLibFileInfo::getGeometryListSize()
 {
 	return geos.size();
@@ -162,6 +171,14 @@ TextureInfo* AniCardLibFileInfo::getTexture( const unsigned int& id )
 {
 	if ( id >= textures.size() ) return 0;
 	return textures.at( id );
+}
+
+TextureInfo* AniCardLibFileInfo::getCardTexture( const unsigned int& id )
+{
+	Marker* marker = getMarker( id );
+	if ( !marker ) return 0;
+	if ( marker->linkedTexture < 0 ) return 0;
+	return getTexture( marker->linkedTexture );
 }
 unsigned int AniCardLibFileInfo::getTextureListSize()
 {

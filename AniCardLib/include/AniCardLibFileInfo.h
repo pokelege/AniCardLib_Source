@@ -48,8 +48,10 @@ public:
 	Marker* getMarker( const unsigned int& id );
 	unsigned int getMarkerListSize();
 	GeometryInfo* getGeometry( const unsigned int& id );
+	GeometryInfo* getCardGeometry( const unsigned int& id );
 	unsigned int getGeometryListSize();
 	TextureInfo* getTexture( const unsigned int& id );
+	TextureInfo* getCardTexture( const unsigned int& id );
 	unsigned int getTextureListSize();
 
 	unsigned char* getPicturePointer( const unsigned int& id );
