@@ -12,17 +12,17 @@ out vec2 uvsend;
 void main()
 {
 	vec4 animatedPosition = vec4(0,0,0,0);
-	//if(blendingIndex.x >=0 || blendingIndex.y >= 0 || blendingIndex.z >= 0 || blendingIndex.w >= 0)
-	//{
-	//if( blendingIndex.x >= 0) animatedPosition += blendingWeight.x * animationMatrices[blendingIndex.x] * vec4(position, 1);
-	//if( blendingIndex.y >= 0) animatedPosition += blendingWeight.y * animationMatrices[blendingIndex.y] * vec4(position, 1);
-	//if( blendingIndex.z >= 0) animatedPosition += blendingWeight.z * animationMatrices[blendingIndex.z] * vec4(position, 1);
-	//if( blendingIndex.w >= 0) animatedPosition += blendingWeight.w * animationMatrices[blendingIndex.w] * vec4(position, 1);
-	//}
-	//else
-	//{
+	if(blendingIndex.x >=0 || blendingIndex.y >= 0 || blendingIndex.z >= 0 || blendingIndex.w >= 0)
+	{
+	if( blendingIndex.x >= 0) animatedPosition += blendingWeight.x * animationMatrices[blendingIndex.x] * vec4(position, 1);
+	if( blendingIndex.y >= 0) animatedPosition += blendingWeight.y * animationMatrices[blendingIndex.y] * vec4(position, 1);
+	if( blendingIndex.z >= 0) animatedPosition += blendingWeight.z * animationMatrices[blendingIndex.z] * vec4(position, 1);
+	if( blendingIndex.w >= 0) animatedPosition += blendingWeight.w * animationMatrices[blendingIndex.w] * vec4(position, 1);
+	}
+	else
+	{
 		animatedPosition = vec4(position,1);
-	//}
+	}
 	vec4 newPosition = animatedPosition;
 	gl_Position = viewToProjection * worldToView  * modelToWorld  * newPosition;
 	uvsend = uvs;

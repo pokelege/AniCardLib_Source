@@ -79,6 +79,7 @@ void Editor::addCard()
 {
 	QFileDialog dialogbox;
 	QFileInfo fileName(dialogbox.getOpenFileName( NULL , "Add Card" ));
+	if ( !fileName.isFile() ) return;
 	int cardIndex = file->addMarker( fileName.absoluteFilePath().toUtf8()) ;
 	if ( cardIndex >= 0 )
 	{
@@ -89,6 +90,7 @@ void Editor::addModel()
 {
 	QFileDialog dialogbox;
 	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Model", QCoreApplication::applicationDirPath(), "*.pmd" ) );
+	if ( !fileName.isFile() ) return;
 	int modelIndex = file->addModel( fileName.absoluteFilePath().toUtf8() );
 	if ( modelIndex >= 0 )
 	{
@@ -108,6 +110,7 @@ void Editor::addTexture()
 {
 	QFileDialog dialogbox;
 	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Texture" , QCoreApplication::applicationDirPath() , "*.png" ) );
+	if ( !fileName.isFile() ) return;
 	int textureIndex = file->addTexture( fileName.absoluteFilePath().toUtf8() );
 	if ( textureIndex >= 0 )
 	{
@@ -126,13 +129,17 @@ void Editor::linkTexture()
 void Editor::save()
 {
 	QFileDialog dialogbox;
-	file->save( dialogbox.getSaveFileName( NULL , "Save File" , QCoreApplication::applicationDirPath() , "*.aclf" ).toUtf8() );
+	QString fileName = dialogbox.getSaveFileName( NULL , "Save File" , QCoreApplication::applicationDirPath() , "*.aclf" ).toUtf8();
+	if ( fileName.isEmpty() ) return;
+	file->save( fileName.toUtf8() );
 }
 void Editor::load()
 {
 	QFileDialog dialogbox;
+	QString fileName = dialogbox.getOpenFileName( NULL , "Load File" , QCoreApplication::applicationDirPath() , "*.aclf" ).toUtf8();
+	if ( fileName.isEmpty() ) return;
 	delete file;
-	file = new AniCardLibFileInfo(dialogbox.getOpenFileName( NULL , "Load File" , QCoreApplication::applicationDirPath() , "*.aclf" ).toUtf8());
+	file = new AniCardLibFileInfo(fileName.toUtf8());
 	arCardsList->clear();
 	for ( unsigned int i = 0; i < file->getMarkerListSize(); ++i )
 	{
