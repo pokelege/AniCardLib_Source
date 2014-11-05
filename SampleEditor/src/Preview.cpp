@@ -80,7 +80,7 @@ void Preview::update()
 
 
 
-	cardPlane->scale = glm::vec3( theWindScale , 1 );
+	cardPlane->scale = glm::vec3(theWindScale , 1 );
 
 	GameObjectManager::globalGameObjectManager.earlyUpdateParents();
 	GameObjectManager::globalGameObjectManager.updateParents();
@@ -102,15 +102,15 @@ void Preview::setCard( unsigned char* cardImage , const unsigned int& width , co
 	while ( drawing );
 	GraphicsTextureManager::globalTextureManager.editTexture( cardTexture , (char*)cardImage , width , height , 0);
 	unsigned int maxDim = std::max( width , height);
-	if ( minDim == width )
+	if ( maxDim == width )
 	{
 		cardScale.x = 1;
-		cardScale.y = ( ( float ) maxDim ) / height;
+		cardScale.y = (float)height / maxDim;
 	}
 	else
 	{
 		cardScale.y = 1;
-		cardScale.x = ( ( float ) maxDim ) / width;
+		cardScale.x = (float)width/maxDim ;
 	}
 	changingTexture = false;
 }
