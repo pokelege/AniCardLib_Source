@@ -15,13 +15,22 @@
 #include <Graphics\Camera.h>
 #include <Core\WindowInfo.h>
 #include <Misc\Clock.h>
+#include <Graphics\AnimationRenderingInfo.h>
+#include <Graphics\GraphicsSharedUniformManager.h>
 void Preview::initializeGL()
 {
 	CommonGraphicsCommands::initializeGlobalGraphics();
 	GameObjectManager::globalGameObjectManager.initialize();
+	cameras.initialize( 2 );
+	ShaderInfo* modelShader;
+	{
+		std::string errors;
+		std::string vert = FileReader( "assets/shaders/ModelVertex.glsl" );
+		std::string frag = FileReader( "assets/shaders/ModelFragment.glsl" );
+		modelShader = GraphicsShaderManager::globalShaderManager.createShaderInfo( vert.c_str() , frag.c_str() , &errors );
+		std::cout << errors.c_str() << std::endl;
+	}
 
-
-	cardRenderer.initialize( 1 );
 	ShaderInfo* cardShader;
 	{
 		std::string errors;
@@ -30,13 +39,33 @@ void Preview::initializeGL()
 		cardShader = GraphicsShaderManager::globalShaderManager.createShaderInfo( vert.c_str() , frag.c_str() , &errors );
 		std::cout << errors.c_str() << std::endl;
 	}
+
+	modelRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	modelRenderable->initialize( 10 , 1 );
+	modelRenderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	modelRenderable->shaderInfo = modelShader;
+	modelRenderable->alphaBlendingEnabled = false;
+	modelRenderable->culling = CT_NONE;
+	
+	GameObject* modelObject = GameObjectManager::globalGameObjectManager.addGameObject();
+	modelObject->addComponent( modelRenderable );
+	modelObject->addComponent( new AnimationRenderingInfo );
+	modelObject->scale = glm::vec3( 5 , 5 , 5 );
+	Camera* modelCamera = cameras.addCamera();
+	modelCamera->initializeRenderManagers();
+	modelCamera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );
+	GameObject* modelViewer = GameObjectManager::globalGameObjectManager.addGameObject();
+	modelViewer->addComponent( modelCamera );
+	modelViewer->translate = glm::vec3( 0 , 0 , 25 );
+
+	cardRenderer.initialize( 1 );
 	GeometryInfo* plane = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/plane.pmd" , GraphicsBufferManager::globalBufferManager );
 	plane->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 	plane->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	cardTexture = GraphicsTextureManager::globalTextureManager.addTexture( 0 , 0 , 0 , 0 );
 
 	Renderable* renderable = cardRenderer.addRenderable();
-	renderable->initialize( 10 , 2 );
+	renderable->initialize( 10 , 1 );
 	renderable->geometryInfo = plane;
 	renderable->shaderInfo = cardShader;
 	renderable->alphaBlendingEnabled = false;
@@ -47,9 +76,13 @@ void Preview::initializeGL()
 	cardPlane = GameObjectManager::globalGameObjectManager.addGameObject();
 	cardPlane->addComponent( renderable );
 
-	Camera* cardCamera = GraphicsCameraManager::globalCameraManager.addCamera();
+	Camera* cardCamera = cameras.addCamera();
 	cardCamera->initializeRenderManagers();
 	cardCamera->addRenderList( &cardRenderer );
+	cardCamera->x = 0.75f;
+	cardCamera->y = 0.75f;
+	cardCamera->width = 0.25f;
+	cardCamera->height = 0.25f;
 	GameObject* cardViewer = GameObjectManager::globalGameObjectManager.addGameObject();
 	cardViewer->addComponent( cardCamera );
 
@@ -91,14 +124,14 @@ void Preview::update()
 void Preview::paintGL()
 {
 	drawing = true;
-	while ( changingTexture );
-	GraphicsCameraManager::globalCameraManager.drawAllCameras();
+	while ( changingCard );
+	cameras.drawAllCameras();
 	drawing = false;
 }
 
-void Preview::setCard( unsigned char* cardImage , const unsigned int& width , const unsigned int& height )
+void Preview::setCard( const unsigned char* cardImage , const unsigned int& width , const unsigned int& height , GeometryInfo* cardGeo , TextureInfo* cardModelTexture )
 {
-	changingTexture = true;
+	changingCard = true;
 	while ( drawing );
 	GraphicsTextureManager::globalTextureManager.editTexture( cardTexture , (char*)cardImage , width , height , 0);
 	unsigned int maxDim = std::max( width , height);
@@ -112,5 +145,15 @@ void Preview::setCard( unsigned char* cardImage , const unsigned int& width , co
 		cardScale.y = 1;
 		cardScale.x = (float)width/maxDim ;
 	}
-	changingTexture = false;
+	if ( cardGeo )
+	{
+		cardGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+		cardGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+		cardGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+		cardGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+	}
+
+	modelRenderable->geometryInfo = cardGeo;
+	modelRenderable->swapTexture( cardModelTexture , 0 );
+	changingCard = false;
 }

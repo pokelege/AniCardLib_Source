@@ -37,7 +37,7 @@ AniCardLibFileInfo::AniCardLibFileInfo( const char* fileName )
 	{
 		Marker* markers = (Marker*)cardData;
 		markers[i].imageOffset = (imageOffset);
-		imageOffset += markers[i].width * markers[i].height;
+		imageOffset += markers[i].width * markers[i].height * 4;
 	}
 
 	bufferManager.initialize();

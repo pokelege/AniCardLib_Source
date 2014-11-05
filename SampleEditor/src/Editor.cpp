@@ -71,7 +71,7 @@ void Editor::selectCard( int selected )
 	Marker* marker = file->getMarker( selected );
 	if ( marker )
 	{
-		preview.setCard( file->getPicturePointer( selected ) , marker->width , marker->height);
+		preview.setCard( file->getPicturePointer( selected ) , marker->width , marker->height, file->getGeometry(selected), file->getTexture(selected));
 	}
 }
 
