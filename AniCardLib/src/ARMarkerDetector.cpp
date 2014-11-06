@@ -66,8 +66,8 @@ void ARMarkerDetector::findCard( PictureFetcher* thePhoto , MarkerPack* markerPa
 		std::cout << "generatingPhoto" << std::endl;
 		return;
 	}
-	while ( numUsing );// std::cout << numUsing << std::endl;;
 	canGrab = false;
+	while ( numUsing ) canGrab = false;;// std::cout << numUsing << std::endl;;
 	if ( this->width != width || this->height != height )
 	{
 		if ( copiedPictureInstance ) delete[] copiedPictureInstance;
@@ -598,8 +598,8 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			quadResults.push_back( quadResult );
 			//debug
 			//{
-			//	while ( numUsing ) std::cout << numUsing << std::endl;
 			//	canGrab = false;
+			//	while ( numUsing )canGrab = false;
 			//	unsigned short randomColor = rand() % 255;
 			//	unsigned short randomColor2 = rand() % 255;
 			//	unsigned short randomColor3 = rand() % 255;
@@ -707,15 +707,11 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 	//std::cout << "num lines " << theLines.size() << std::endl;
 	//std::cout << "num quads " << quadResults.size() << std::endl;
 	//std::cout << "full algoTime " << c.Stop() << std::endl;
-	//std::cin.get();
+	std::cin.get();
 }
 
 bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index )
 {
-	if ( index > 1 )
-	{
-		//std::cout << "highindex " << index << std::endl;
-	}
 	float angleThreshold = 5;
 	float threshold = ((float)(width + height) / 2.0f) * 0.015f;
 	//std::cout << threshold << std::endl;
@@ -730,17 +726,60 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 		// guess 3 corners
 		if ( !found && abs( ( lineToCompareAngle ) -quadToEdit.line[0]->angle ) <= angleThreshold )
 		{
-			glm::vec2 normal = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) );
-			glm::vec2 lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[3]->start );
+			glm::vec2 normal = glm::normalize( glm::vec2( quadToEdit.line[0]->end - quadToEdit.line[0]->start ) );
+			glm::vec2 lineToDot = glm::vec2( quadToEdit.line[3]->start - quadToEdit.line[0]->start );
 			float theDot = glm::dot( lineToDot , normal );
-			quadToEdit.line[3]->end = glm::ivec2( theDot * normal ) + quadToEdit.line[3]->start;
+			glm::vec2 potentialPoint = theDot * normal;
+			if ( theDot < threshold )
+			{
+				float line0Length = glm::length( glm::vec2( quadToEdit.line[0]->end - quadToEdit.line[0]->start ) );
+				float line2Length = glm::length( glm::vec2( quadToEdit.line[2]->end - quadToEdit.line[2]->start ) );
+				if ( line2Length > line0Length )
+				{
+					quadToEdit.line[0]->start = glm::ivec2( potentialPoint );
+					quadToEdit.line[3]->end = quadToEdit.line[0]->start;
+				}
+				else
+				{
+					normal = glm::normalize( glm::vec2( quadToEdit.line[2]->end - quadToEdit.line[2]->start ) );
+					lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[2]->start );
+					theDot = glm::dot( lineToDot , normal );
+					quadToEdit.line[2]->end = ( theDot * normal ) + glm::vec2(quadToEdit.line[2]->start);
+					quadToEdit.line[3]->start = quadToEdit.line[2]->end;
+					quadToEdit.line[3]->end = quadToEdit.line[0]->start;
+				}
+				found = true;
+			}
+			else
+			{
 
-			normal = glm::normalize( glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
-			lineToDot = glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[0]->end );
-			theDot = glm::dot( lineToDot , normal );
-			quadToEdit.line[0]->start = glm::ivec2( theDot * normal ) + quadToEdit.line[0]->end;
+			}
+
+			//glm::vec2 normal = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) );
+			//glm::vec2 lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[3]->start );
+			//float theDot = glm::dot( lineToDot , normal );
+			//glm::ivec2 newPoint = glm::ivec2( theDot * normal ) + quadToEdit.line[3]->start;
+			////quadToEdit.line[3]->end = glm::ivec2( theDot * normal ) + quadToEdit.line[3]->start;
+
+			//glm::vec2 normal2 = glm::normalize( glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
+			//glm::vec2 lineToDot2 = glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[0]->end );
+			//float theDot2 = glm::dot( lineToDot2 , normal2 );
+			//glm::ivec2 newPoint2 = glm::ivec2( theDot2 * normal2 ) + quadToEdit.line[0]->end;
+
+			//lineToDot = glm::vec2( newPoint - quadToEdit.line[3]->start );
+			//theDot = glm::dot( lineToDot , normal );
+			//lineToDot2 = glm::vec2( newPoint2 - quadToEdit.line[0]->end );
+			//theDot2 = glm::dot( lineToDot2 , normal2 );
+			//if ( theDot > theDot2 )
+			//{
+			//	quadToEdit.line[3]->end = newPoint;
+			//}
+			//else
+			//{
+			//	quadToEdit.line[0]->start = newPoint2;
+			//}
+			//quadToEdit.line[0]->start = glm::ivec2( theDot2 * normal2 ) + quadToEdit.line[0]->end;
 			//quadToEdit.line[0]->start = quadToEdit.line[3]->end;
-			return true;
 		}
 		return found;
 	}
