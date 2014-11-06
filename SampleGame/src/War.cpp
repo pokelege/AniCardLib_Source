@@ -27,6 +27,8 @@
 #include <ARMarkerDetector.h>
 #include <MarkerPack.h>
 #include <DebugMemory.h>
+#include <Marker.h>
+#include <Input\FirstPersonCameraInput.h>
 War::War() :cameraSource(0)
 {
 	texture = 1;
@@ -92,8 +94,12 @@ void War::initializeGL()
 	camera->nearestObject = 0.01f;
 	GameObject* player = GameObjectManager::globalGameObjectManager.addGameObject();
 	player->translate = glm::vec3( 0 , 0 , 25 );
-	camera->direction = glm::vec3( 0 , 0 , -1 );
 	player->addComponent( camera );
+	FirstPersonCameraInput* fpsInput = new FirstPersonCameraInput;
+	fpsInput->moveSensitivity = 1;
+	fpsInput->rotationSensitivity = 0.1f;
+	player->addComponent( fpsInput );
+
 
 	renderable1 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	renderable1->initialize( 10 , 1 );
@@ -108,7 +114,7 @@ void War::initializeGL()
 	player1->addComponent( renderable1 );
 	player1->addComponent( animation );
 	player1->rotate = glm::vec3( 90 , 0 , 0 );
-	player1->active = false;
+	player1->active = true;
 
 	renderable2 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	renderable2->initialize( 10 , 1 );
@@ -123,7 +129,7 @@ void War::initializeGL()
 	player2->addComponent(renderable2 );
 	player2->addComponent( animation2 );
 	player2->rotate = glm::vec3( 90 , 0 , 0 );
-	player2->active = false;
+	player2->active = true;
 
 	
 	MarkerPack::global.load( "assets/cardPack.aclf" );
@@ -136,6 +142,16 @@ void War::initializeGL()
 		geoLoad->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 		geoLoad->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 	}
+
+	MouseInput::globalMouseInput.updateOldMousePosition = false;
+
+	setMouseTracking( true );
+	QCursor c = cursor();
+	c.setPos( mapToGlobal( QPoint( width() / 2 , height() / 2 ) ) );
+	c.setShape( Qt::BlankCursor );
+	setCursor( c );
+	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( width() / 2 , height() / 2 ) );
+
 	AudioController::globalAudioController.initialize();
 	AudioController::globalAudioController.playSound( "assets/audio/music.mp3" , true );
 	timer = new QTimer();
@@ -143,8 +159,37 @@ void War::initializeGL()
 	timer->start( 0 );
 }
 
+void War::mouseMoveEvent( QMouseEvent* e )
+{
+	e;
+	QCursor c = cursor();
+	QPoint mapFromGlobal = this->mapFromGlobal( c.pos() );
+	if ( GetAsyncKeyState( VK_LBUTTON ) < 0 && mapFromGlobal.x() >= 0 && mapFromGlobal.x() <= width() &&
+		 mapFromGlobal.y() >= 0 && mapFromGlobal.y() <= height() && MouseInput::globalMouseInput.oldMousePosition != glm::vec2( c.pos().x() , c.pos().y() ) )
+	{
+		if ( !MouseInput::globalMouseInput.getDeltaTracking() )MouseInput::globalMouseInput.setDeltaTracking( true );
+		glm::vec2 oldPos = MouseInput::globalMouseInput.oldMousePosition;
+		MouseInput::globalMouseInput.updateMousePosition( glm::vec2( c.pos().x() , c.pos().y() ) );
+
+		c.setPos( QPoint( oldPos.x , oldPos.y ) );
+		c.setShape( Qt::BlankCursor );
+	}
+	else if ( MouseInput::globalMouseInput.oldMousePosition != glm::vec2( c.pos().x() , c.pos().y() ) )
+	{
+		c.setShape( Qt::ArrowCursor );
+		if ( MouseInput::globalMouseInput.getDeltaTracking() )MouseInput::globalMouseInput.setDeltaTracking( false );
+		MouseInput::globalMouseInput.oldMousePosition = glm::vec2( c.pos().x() , c.pos().y() );
+		MouseInput::globalMouseInput.updateMousePosition( glm::vec2( c.pos().x() , c.pos().y() ) );
+	}
+	clearFocus();
+	setCursor( c );
+	setFocus();
+}
+
 void War::update()
 {
+	//std::cout << player1->active << std::endl;
+	//std::cout << MarkerPack::global.getMarker( 0 )->width << std::endl;
 	cameraSource->update();
 	WindowInfo::width = width();
 	WindowInfo::height = height();
@@ -158,12 +203,14 @@ void War::update()
 	{
 		if ( list && list->size() )
 		{
+			//std::cout << list->size() << std::endl;
 			player1Fails = 0;
 			//transform = list->at( 0 );
 			//transform *= glm::inverse( transform );
 			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) / 2 , ( list->at( 0 ).center.y * plane->scale.y ) / 2 , 0 );
 			//diamond->translate = characterPos;
 			player1->translate = characterPos;
+			//std::cout << MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex ) << std::endl;
 			renderable1->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex );
 			renderable1->swapTexture( MarkerPack::global.getCardTexture( list->at( 0 ).cardIndex ) , 0 );
 			player1->active = true;
@@ -174,15 +221,23 @@ void War::update()
 			}
 			else
 			{
-				player2Fails = 0;
-				//transform = list->at( 0 );
-				//transform *= glm::inverse( transform );
-				glm::vec3 characterPos2( ( list->at( 1 ).center.x * plane->scale.x ) / 2 , ( list->at( 1 ).center.y * plane->scale.y ) / 2 , 0 );
-				//diamond->translate = characterPos;
-				player2->translate = characterPos;
-				renderable2->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 1 ).cardIndex );
-				renderable2->swapTexture( MarkerPack::global.getCardTexture( list->at( 1 ).cardIndex ) , 0 );
-				player2->active = true;
+				for ( unsigned int i = 1; i < list->size(); ++i )
+				{
+					glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x ) / 2 , ( list->at( i ).center.y * plane->scale.y ) / 2 , 0 );
+					if ( glm::length( characterPos - characterPos2 ) > 10 )
+					{
+						player2Fails = 0;
+						//transform = list->at( 0 );
+						//transform *= glm::inverse( transform );
+						glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x ) / 2 , ( list->at( i ).center.y * plane->scale.y ) / 2 , 0 );
+						//diamond->translate = characterPos;
+						player2->translate = characterPos2;
+						renderable2->geometryInfo = MarkerPack::global.getCardGeometry( list->at( i ).cardIndex );
+						renderable2->swapTexture( MarkerPack::global.getCardTexture( list->at( i ).cardIndex ) , 0 );
+						player2->active = true;
+						break;
+					}
+				}
 			}
 		}
 		else
@@ -200,11 +255,11 @@ void War::update()
 		}
 		ARMarkerDetector::global.finishedUsingMarkerFound();
 	}
-	QPoint point = cursor().pos();
-	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( point.x() , point.y() ) );
+
 	GameObjectManager::globalGameObjectManager.earlyUpdateParents();
 	GameObjectManager::globalGameObjectManager.updateParents();
 	GameObjectManager::globalGameObjectManager.lateUpdateParents();
+	MouseInput::globalMouseInput.mouseDelta = glm::vec2();
 	repaint();
 }
 

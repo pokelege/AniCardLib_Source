@@ -678,8 +678,8 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		}
 	}
 
-	while ( numUsingMarkerFound );
 	canGrabMarkerFound = false;
+	while ( numUsingMarkerFound );
 	toSend.clear();
 	for ( unsigned int i = 0; i < quadResults.size(); ++i )
 	{

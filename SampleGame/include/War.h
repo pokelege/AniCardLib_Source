@@ -20,6 +20,7 @@ class War : public QGLWidget
 	QTimer* timer;
 	GameObject* player1, *player2;
 	RenderableInfo* renderable1, *renderable2;
+	void mouseMoveEvent( QMouseEvent* e );
 	int maxFails;
 	int player1Fails , player2Fails;
 	glm::mat4 transform;
