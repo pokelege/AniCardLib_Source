@@ -79,7 +79,7 @@ void Editor::selectCard( int selected )
 void Editor::addCard()
 {
 	QFileDialog dialogbox;
-	QFileInfo fileName(dialogbox.getOpenFileName( NULL , "Add Card" ));
+	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Card" , QCoreApplication::applicationDirPath() , "*.png" ) );
 	if ( !fileName.isFile() ) return;
 	int cardIndex = file->addMarker( fileName.absoluteFilePath().toUtf8()) ;
 	if ( cardIndex >= 0 )
@@ -110,7 +110,7 @@ void Editor::linkModel()
 void Editor::addTexture()
 {
 	QFileDialog dialogbox;
-	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Texture" , QCoreApplication::applicationDirPath() , "*.png" ) );
+	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Texture" , QCoreApplication::applicationDirPath() , "*.tex" ) );
 	if ( !fileName.isFile() ) return;
 	int textureIndex = file->addTexture( fileName.absoluteFilePath().toUtf8() );
 	if ( textureIndex >= 0 )
