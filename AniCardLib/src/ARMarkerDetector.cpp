@@ -707,7 +707,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 	//std::cout << "num lines " << theLines.size() << std::endl;
 	//std::cout << "num quads " << quadResults.size() << std::endl;
 	//std::cout << "full algoTime " << c.Stop() << std::endl;
-	std::cin.get();
+	//std::cin.get();
 }
 
 bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index )
