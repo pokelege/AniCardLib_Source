@@ -597,57 +597,50 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 
 			quadResults.push_back( quadResult );
 			//debug
-			//{
-			//	canGrab = false;
-			//	while ( numUsing )canGrab = false;
-			//	unsigned short randomColor = rand() % 255;
-			//	unsigned short randomColor2 = rand() % 255;
-			//	unsigned short randomColor3 = rand() % 255;
-			//	for ( unsigned int i = 0; i < 4; ++i )
-			//	{
-			//		
-			//		glm::vec2* start = &quadResult.pt[i];
-			//		glm::vec2* end = 0;
-			//		if ( i >= 3 )
-			//		{
-			//			end = &quadResult.pt[0];
-			//		}
-			//		else
-			//		{
-			//			end = &quadResult.pt[i + 1];
-			//		}
-			//		glm::vec2 normalized = glm::normalize( glm::vec2( *end ) - glm::vec2( *start ) );
-			//		glm::vec2 testPixel = glm::vec2( *start);
-			//		glm::ivec2 lastPixel = glm::ivec2(*start);
-			//		unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-			//		//std::cout << lastPixel.y << std::endl;
-			//		//std::cout << lastPixel.x << std::endl;
-			//		if ( lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
-			//		{
-			//			copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
-			//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
-			//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
-			//		}
-			//		while ( glm::ivec2( testPixel ) == lastPixel )
-			//		{
-			//			testPixel += normalized;
-			//		}
-			//		lastPixel = glm::ivec2( testPixel );
-			//		while ( glm::length( testPixel - glm::vec2( *start ) ) <= glm::length( glm::vec2( *end ) - glm::vec2( *start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
-			//		{
-			//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-			//			copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
-			//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
-			//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
-			//			while ( glm::ivec2( testPixel ) == lastPixel )
-			//			{
-			//				testPixel += normalized;
-			//			}
-			//			lastPixel = glm::ivec2( testPixel );
-			//		}
-			//	}
-			//	canGrab = true;
-			//}
+			{
+				canGrab = false;
+				while ( numUsing ) { canGrab = false; std::cout << "using" << std::endl; }
+				unsigned short randomColor = rand() % 255;
+				unsigned short randomColor2 = rand() % 255;
+				unsigned short randomColor3 = rand() % 255;
+				for ( unsigned int i = 0; i < 4; ++i )
+				{
+					
+					glm::vec2* start = &quadResult.pt[i];
+					glm::vec2* end = &quadResult.pt[(i + 1) % 4];
+					glm::vec2 normalized = glm::normalize( glm::vec2( *end ) - glm::vec2( *start ) );
+					glm::vec2 testPixel = glm::vec2( *start);
+					glm::ivec2 lastPixel = glm::ivec2(*start);
+					//std::cout << glm::ivec2( testPixel ).x << " " << glm::ivec2( testPixel ).y << std::endl;
+					unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+					//std::cout << lastPixel.y << std::endl;
+					//std::cout << lastPixel.x << std::endl;
+					if ( lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+					{
+						copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+						copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+						copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+					}
+					while ( glm::ivec2( testPixel ) == lastPixel )
+					{
+						testPixel += normalized;
+					}
+					lastPixel = glm::ivec2( testPixel );
+					while ( glm::length( testPixel - glm::vec2( *start ) ) <= glm::length( glm::vec2( *end ) - glm::vec2( *start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+					{
+						unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+						copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+						copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+						copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+						while ( glm::ivec2( testPixel ) == lastPixel )
+						{
+							testPixel += normalized;
+						}
+						lastPixel = glm::ivec2( testPixel );
+					}
+				}
+				canGrab = true;
+			}
 
 			for ( unsigned int i = 0; i < 4; ++i )
 			{
@@ -679,7 +672,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 	}
 
 	canGrabMarkerFound = false;
-	while ( numUsingMarkerFound );
+	while ( numUsingMarkerFound ) std::cout << numUsingMarkerFound << std::endl;
 	toSend.clear();
 	for ( unsigned int i = 0; i < quadResults.size(); ++i )
 	{
@@ -707,7 +700,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 	//std::cout << "num lines " << theLines.size() << std::endl;
 	//std::cout << "num quads " << quadResults.size() << std::endl;
 	//std::cout << "full algoTime " << c.Stop() << std::endl;
-	//std::cin.get();
+	std::cin.get();
 }
 
 bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index )
@@ -726,34 +719,68 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 		// guess 3 corners
 		if ( !found && abs( ( lineToCompareAngle ) -quadToEdit.line[0]->angle ) <= angleThreshold )
 		{
-			glm::vec2 normal = glm::normalize( glm::vec2( quadToEdit.line[0]->end - quadToEdit.line[0]->start ) );
-			glm::vec2 lineToDot = glm::vec2( quadToEdit.line[3]->start - quadToEdit.line[0]->start );
-			float theDot = glm::dot( lineToDot , normal );
-			glm::vec2 potentialPoint = theDot * normal;
-			if ( theDot < threshold )
+			glm::vec2 d = glm::vec2(quadToEdit.line[3]->start - quadToEdit.line[0]->end);
+			glm::vec2 linebDir = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) );
+			glm::vec2 lineaDir = glm::normalize( glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
+			float determinant = ( linebDir.x * lineaDir.y ) - ( linebDir.y * lineaDir.x );
+			float u = ( ( d.y * linebDir.x ) - ( d.x * linebDir.y ) ) / determinant;
+			float v = ( ( d.y * lineaDir.x ) - ( d.x * lineaDir.y ) ) / determinant;
+			if ( u > 0 && v > 0 )
 			{
-				float line0Length = glm::length( glm::vec2( quadToEdit.line[0]->end - quadToEdit.line[0]->start ) );
-				float line2Length = glm::length( glm::vec2( quadToEdit.line[2]->end - quadToEdit.line[2]->start ) );
-				if ( line2Length > line0Length )
+				glm::vec2 newPosA = glm::vec2(quadToEdit.line[0]->end) + ( u * lineaDir );
+				glm::vec2 newPosB = glm::vec2( quadToEdit.line[3]->start ) + ( v * linebDir );
+				//std::cout << newPosA.x << " " << newPosA.y << std::endl;
+				//std::cout << newPosB.x << " " << newPosB.y << std::endl;
+				if ( newPosA == newPosB )
 				{
-					quadToEdit.line[0]->start = glm::ivec2( potentialPoint );
-					quadToEdit.line[3]->end = quadToEdit.line[0]->start;
+					//std::cout << "success" << std::endl;
+					quadToEdit.line[0]->start = newPosA;
+					quadToEdit.line[3]->end = newPosB;
+					found = true;
 				}
-				else
-				{
-					normal = glm::normalize( glm::vec2( quadToEdit.line[2]->end - quadToEdit.line[2]->start ) );
-					lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[2]->start );
-					theDot = glm::dot( lineToDot , normal );
-					quadToEdit.line[2]->end = ( theDot * normal ) + glm::vec2(quadToEdit.line[2]->start);
-					quadToEdit.line[3]->start = quadToEdit.line[2]->end;
-					quadToEdit.line[3]->end = quadToEdit.line[0]->start;
-				}
-				found = true;
 			}
-			else
-			{
+			//glm::ivec2 v3 = quadToEdit.line[0]->end - quadToEdit.line[3]->start;
+			//glm::vec2 v3PerpNormal = glm::normalize( glm::vec2( v3 ) );
+			//v3PerpNormal = glm::vec2( -v3PerpNormal.y , v3PerpNormal.x );
+			//float upperDot = glm::dot( v3PerpNormal, glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
 
-			}
+			//glm::vec2 v1PerpNormal = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start) );
+			//v1PerpNormal = glm::vec2(-v1PerpNormal.y, v1PerpNormal.x);
+			//float t = upperDot / glm::dot( v1PerpNormal, glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
+
+			//glm::vec2 intersection = ( t * glm::vec2( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) ) ) + glm::vec2(quadToEdit.line[3]->start);
+			//std::cout << intersection.x << " " << intersection.y << std::endl;
+			//quadToEdit.line[0]->start = glm::ivec2( intersection );
+			//quadToEdit.line[3]->end = glm::ivec2( intersection );
+			//found = true;
+			//glm::vec2 normal = glm::normalize( glm::vec2( quadToEdit.line[0]->end - quadToEdit.line[0]->start ) );
+			//glm::vec2 lineToDot = glm::vec2( quadToEdit.line[3]->start - quadToEdit.line[0]->start );
+			//float theDot = glm::dot( lineToDot , normal );
+			//glm::vec2 potentialPoint = theDot * normal;
+			//if ( theDot < threshold )
+			//{
+			//	float line0Length = glm::length( glm::vec2( quadToEdit.line[0]->end - quadToEdit.line[0]->start ) );
+			//	float line2Length = glm::length( glm::vec2( quadToEdit.line[2]->end - quadToEdit.line[2]->start ) );
+			//	if ( line2Length > line0Length )
+			//	{
+			//		quadToEdit.line[0]->start = glm::ivec2( potentialPoint );
+			//		quadToEdit.line[3]->end = quadToEdit.line[0]->start;
+			//	}
+			//	else
+			//	{
+			//		normal = glm::normalize( glm::vec2( quadToEdit.line[2]->end - quadToEdit.line[2]->start ) );
+			//		lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[2]->start );
+			//		theDot = glm::dot( lineToDot , normal );
+			//		quadToEdit.line[2]->end = ( theDot * normal ) + glm::vec2(quadToEdit.line[2]->start);
+			//		quadToEdit.line[3]->start = quadToEdit.line[2]->end;
+			//		quadToEdit.line[3]->end = quadToEdit.line[0]->start;
+			//	}
+			//	found = true;
+			//}
+			//else
+			//{
+
+			//}
 
 			//glm::vec2 normal = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) );
 			//glm::vec2 lineToDot = glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[3]->start );

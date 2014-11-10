@@ -29,7 +29,7 @@
 #include <DebugMemory.h>
 #include <Marker.h>
 #include <Input\FirstPersonCameraInput.h>
-War::War() :cameraSource(0)
+War::War() :cameraSource(0) , foundMarkers(false)
 {
 	texture = 1;
 	maxFails = 100;
@@ -214,7 +214,7 @@ void War::update()
 			renderable1->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex );
 			renderable1->swapTexture( MarkerPack::global.getCardTexture( list->at( 0 ).cardIndex ) , 0 );
 			player1->active = true;
-
+			//std::cout << list->at( 0 ).cardIndex << std::endl;
 			if ( list->size() < 2 )
 			{
 				if ( player2->active && player2Fails < maxFails ) ++player2Fails;

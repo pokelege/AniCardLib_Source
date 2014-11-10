@@ -234,35 +234,35 @@ HRESULT WebCamSource::initialize()
 
 void WebCamSource::update()
 {
-	IAMCameraControl* iKInterface = 0;
-	selectedCamera->QueryInterface( IID_IAMCameraControl , ( void** ) &iKInterface );
+	//IAMCameraControl* iKInterface = 0;
+	//selectedCamera->QueryInterface( IID_IAMCameraControl , ( void** ) &iKInterface );
 
-	if ( iKInterface != 0 )
-	{
-		iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Auto );
-		iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Manual );
-		//iKInterface->Set( KSPROPERTY_CAMERACONTROL_ , 0 , CameraControl_Flags_Auto );
-		//std::cout << _com_error( a ).ErrorMessage() << std::endl;
-		//unsigned long numNodes = 0;
-		//iKInterface->get_NumNodes( &numNodes );
-		//for ( unsigned long i = 0; i < numNodes; ++i )
-		//{
-		//	GUID interfaceType;
-		//	iKInterface->get_NodeType( i , &interfaceType );
-		//	if ( interfaceType == KSNODETYPE_VIDEO_CAMERA_TERMINAL )
-		//	{
-		//		ICameraControl* findingFocalLength = 0;
-		//		iKInterface->CreateNodeInstance( i , __uuidof( ICameraControl ) , ( void** ) &findingFocalLength );
-		//		if ( findingFocalLength )
-		//		{
-		//			long focalLength = 0 , set , set2;
-		//			HRESULT lol = findingFocalLength->put_Exposure( 0 , 2 );
-		//			_com_error err( lol );
-		//			std::cout << err.ErrorMessage() << std::endl;
-		//		}
-		//	}
-		//}
-	}
+	//if ( iKInterface != 0 )
+	//{
+	//	iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Auto );
+	//	iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Manual );
+	//	//iKInterface->Set( KSPROPERTY_CAMERACONTROL_ , 0 , CameraControl_Flags_Auto );
+	//	//std::cout << _com_error( a ).ErrorMessage() << std::endl;
+	//	//unsigned long numNodes = 0;
+	//	//iKInterface->get_NumNodes( &numNodes );
+	//	//for ( unsigned long i = 0; i < numNodes; ++i )
+	//	//{
+	//	//	GUID interfaceType;
+	//	//	iKInterface->get_NodeType( i , &interfaceType );
+	//	//	if ( interfaceType == KSNODETYPE_VIDEO_CAMERA_TERMINAL )
+	//	//	{
+	//	//		ICameraControl* findingFocalLength = 0;
+	//	//		iKInterface->CreateNodeInstance( i , __uuidof( ICameraControl ) , ( void** ) &findingFocalLength );
+	//	//		if ( findingFocalLength )
+	//	//		{
+	//	//			long focalLength = 0 , set , set2;
+	//	//			HRESULT lol = findingFocalLength->put_Exposure( 0 , 2 );
+	//	//			_com_error err( lol );
+	//	//			std::cout << err.ErrorMessage() << std::endl;
+	//	//		}
+	//	//	}
+	//	//}
+	//}
 }
 
 HRESULT WebCamSource::destroy()

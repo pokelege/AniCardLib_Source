@@ -9,7 +9,7 @@
 #include <AniCardLibFileInfo.h>
 #include <Marker.h>
 MarkerPack MarkerPack::global;
-
+unsigned long MarkerPack::highestDissimilarity = 300000000;
 MarkerPack::MarkerPack() : debugPicture( 0 ) , cards( 0 )
 {
 	cards = new AniCardLibFileInfo;
@@ -527,8 +527,8 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 
 	unsigned int closest = 0;
 	unsigned long smallestDissimilarity = ULONG_MAX;
-	AniCardLib::Clock c;
-	c.Start();
+	//AniCardLib::Clock c;
+	//c.Start();
 	std::vector<FoundMarkerInfo> foundInfos;
 	for ( unsigned int i = 0; i < closestMarkerCorners.size(); ++i )
 	{
