@@ -9,7 +9,7 @@
 #include <AniCardLibFileInfo.h>
 #include <Marker.h>
 MarkerPack MarkerPack::global;
-unsigned long MarkerPack::highestDissimilarity = 300000000;
+unsigned long MarkerPack::highestDissimilarity = ULONG_MAX;
 MarkerPack::MarkerPack() : debugPicture( 0 ) , cards( 0 )
 {
 	cards = new AniCardLibFileInfo;
@@ -114,7 +114,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 	quadInfo.pos[3] = quad.pt[3];
 
 	FoundMarkerInfo resultantMarker = getSmallestDissimilarity( quadInfo );
-
+	if ( resultantMarker.dissimilarity > highestDissimilarity ) return false;
 	float markerWidth = ( ( float ) cards->getMarker(resultantMarker.markerID )->width) / pictureWidth;
 	float markerHeight = ( ( float ) cards->getMarker( resultantMarker.markerID )->height ) / pictureHeight;
 	float* vectorMult = new float[8];
@@ -340,6 +340,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 	//delete[] matrix;
 	//delete[] vectorMult;
 	quad.markerID = resultantMarker.markerID;
+	quad.dissimilarity = resultantMarker.dissimilarity;
 	return true;
 }
 
@@ -444,7 +445,11 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 
 				unsigned long toAdd = picturePixel - result;
 				difference += toAdd * toAdd;
-
+				if ( difference > highestDissimilarity )
+				{
+					difference = ULONG_MAX;
+					break;
+				}
 				//std::cout << "pass card test" << std::endl;
 				//float Xi = ( vectorMult[0] * x + vectorMult[1] * y + vectorMult[2] ) /
 				//	( vectorMult[6] * x + vectorMult[7] * y + 1 );
@@ -455,6 +460,11 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				//if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
 				//unsigned long toAdd = picturePixel - markers[info.marker].bytes[( y * markers[info.marker].width ) + x];
 				//difference += toAdd * toAdd;
+			}
+			if ( difference > highestDissimilarity )
+			{
+				difference = ULONG_MAX;
+				break;
 			}
 		}
 		//std::cout << "calctimepic " << c.Stop() << std::endl;

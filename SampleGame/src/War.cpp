@@ -29,7 +29,9 @@
 #include <DebugMemory.h>
 #include <Marker.h>
 #include <Input\FirstPersonCameraInput.h>
-War::War() :cameraSource(0) , foundMarkers(false)
+#include <gtc\matrix_transform.hpp>
+#include <gtx\quaternion.hpp>
+War::War() :cameraSource(0) , animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
 	maxFails = 100;
@@ -109,12 +111,12 @@ void War::initializeGL()
 	renderable1->culling = CT_NONE;
 	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
 	animation = new AnimationRenderingInfo;
-	
+	animation->animationFrameRate = 60;
 	player1 = GameObjectManager::globalGameObjectManager.addGameObject();
 	player1->addComponent( renderable1 );
 	player1->addComponent( animation );
 	player1->rotate = glm::vec3( 90 , 0 , 0 );
-	player1->active = true;
+	player1->active = false;
 
 	renderable2 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	renderable2->initialize( 10 , 1 );
@@ -124,12 +126,12 @@ void War::initializeGL()
 	renderable2->culling = CT_NONE;
 	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
 	animation2 = new AnimationRenderingInfo;
-
+	animation2->animationFrameRate = 60;
 	player2 = GameObjectManager::globalGameObjectManager.addGameObject();
 	player2->addComponent(renderable2 );
 	player2->addComponent( animation2 );
 	player2->rotate = glm::vec3( 90 , 0 , 0 );
-	player2->active = true;
+	player2->active = false;
 
 	
 	MarkerPack::global.load( "assets/cardPack.aclf" );
@@ -194,9 +196,84 @@ void War::update()
 	WindowInfo::width = width();
 	WindowInfo::height = height();
 	Clock::update();
+
+	if ( !animating && findMarkers() )
+	{
+		animating = true;
+	}
+	if ( animating )
+	{
+		animationUpdate();
+	}
+	GameObjectManager::globalGameObjectManager.earlyUpdateParents();
+	GameObjectManager::globalGameObjectManager.updateParents();
+	GameObjectManager::globalGameObjectManager.lateUpdateParents();
+	MouseInput::globalMouseInput.mouseDelta = glm::vec2();
+	repaint();
+}
+
+void War::animationUpdate()
+{
+	glm::vec2 center = 0.5f * (marker1.center + marker2.center);
+	
+	glm::vec3 worldCenterPos( (center.x * plane->scale.x ) / 2 , ( center.y * plane->scale.y ) / 2 , 10 );
+	switch ( aniState )
+	{
+		case ToFight:
+			lerp += speed * Clock::dt;
+			if ( lerp >= 1 )
+			{
+				lerp = 1;
+				aniState = EndFight;
+				if ( marker1.cardIndex % 13 > marker2.cardIndex % 13 )
+				{
+					animation->play( 0 );
+					animation2->play( 2 );
+				}
+				else if ( marker1.cardIndex % 13 < marker2.cardIndex % 13 )
+				{
+					animation->play( 2 );
+					animation2->play( 0 );
+				}
+				else
+				{
+					animation->play( 2 );
+					animation2->play( 2 );
+				}
+			}
+			player1->translate = glm::mix( player1OldPos , worldCenterPos , lerp );
+			player2->translate = glm::mix( player2OldPos , worldCenterPos , lerp );
+			break;
+		case EndFight:
+			lerp -= speed * Clock::dt;
+			if ( lerp <= 0 )
+			{
+				lerp = 0;
+				aniState = None;
+				animation->play( 0 );
+				animation2->play( 0 );
+				animating = false;
+				player1->active = false;
+				player2->active = false;
+			}
+			player1->translate = glm::mix( player1OldPos , worldCenterPos , lerp );
+			player2->translate = glm::mix( player2OldPos , worldCenterPos , lerp );
+			break;
+		default:
+			aniState = ToFight;
+			animation->play( 1 );
+			animation2->play( 1 );
+			player1->rotate = glm::eulerAngles(glm::quat_cast(glm::lookAt( player1->translate , worldCenterPos - glm::vec3(0,0,10) , glm::vec3( 0 , 0 , -1 ))));
+			player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt( player2->translate , worldCenterPos - glm::vec3( 0 , 0 , 10 ) , glm::vec3( 0 , 0 , -1 ) ) ) );
+			break;
+	}
+}
+
+bool War::findMarkers()
+{
 	if ( cameraSource )
 	{
-		ARMarkerDetector::global.findCard( cameraSource->fetcher, &MarkerPack::global);
+		ARMarkerDetector::global.findCard( cameraSource->fetcher , &MarkerPack::global );
 	}
 	std::vector<FoundMarkerInfo>* list = 0;
 	if ( ARMarkerDetector::global.getMarkerFound( &list ) )
@@ -210,9 +287,13 @@ void War::update()
 			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) / 2 , ( list->at( 0 ).center.y * plane->scale.y ) / 2 , 0 );
 			//diamond->translate = characterPos;
 			player1->translate = characterPos;
-			//std::cout << MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex ) << std::endl;
+			std::cout <<list->at( 0 ).cardIndex << std::endl;
+			std::cout << list->at( 0 ).dissimilarity << std::endl;
+			std::cout << list->size() << std::endl;
 			renderable1->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex );
 			renderable1->swapTexture( MarkerPack::global.getCardTexture( list->at( 0 ).cardIndex ) , 0 );
+			player1OldPos = characterPos;
+			marker1 = list->at( 0 );
 			player1->active = true;
 			//std::cout << list->at( 0 ).cardIndex << std::endl;
 			if ( list->size() < 2 )
@@ -224,7 +305,7 @@ void War::update()
 				for ( unsigned int i = 1; i < list->size(); ++i )
 				{
 					glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x ) / 2 , ( list->at( i ).center.y * plane->scale.y ) / 2 , 0 );
-					if ( glm::length( characterPos - characterPos2 ) > 10 )
+					if ( glm::length( characterPos - characterPos2 ) > 5 )
 					{
 						player2Fails = 0;
 						//transform = list->at( 0 );
@@ -234,6 +315,8 @@ void War::update()
 						player2->translate = characterPos2;
 						renderable2->geometryInfo = MarkerPack::global.getCardGeometry( list->at( i ).cardIndex );
 						renderable2->swapTexture( MarkerPack::global.getCardTexture( list->at( i ).cardIndex ) , 0 );
+						player2OldPos = characterPos2;
+						marker2 = list->at( i );
 						player2->active = true;
 						break;
 					}
@@ -255,12 +338,7 @@ void War::update()
 		}
 		ARMarkerDetector::global.finishedUsingMarkerFound();
 	}
-
-	GameObjectManager::globalGameObjectManager.earlyUpdateParents();
-	GameObjectManager::globalGameObjectManager.updateParents();
-	GameObjectManager::globalGameObjectManager.lateUpdateParents();
-	MouseInput::globalMouseInput.mouseDelta = glm::vec2();
-	repaint();
+	return player1->active && player2->active;
 }
 
 

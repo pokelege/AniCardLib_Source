@@ -10,6 +10,7 @@ class GameObject;
 struct AnimationRenderingInfo;
 class QTimer;
 struct RenderableInfo;
+enum AnimationState {None, ToFight, EndFight};
 class War : public QGLWidget
 {
 	Q_OBJECT;
@@ -22,7 +23,11 @@ class War : public QGLWidget
 	GameObject* player1, *player2;
 	RenderableInfo* renderable1, *renderable2;
 	FoundMarkerInfo marker1 , marker2;
-	bool foundMarkers;
+	glm::vec3 player1OldPos , player2OldPos;
+	AnimationState aniState;
+	float lerp;
+	float speed;
+	bool animating;
 	void mouseMoveEvent( QMouseEvent* e );
 	int maxFails;
 	int player1Fails , player2Fails;

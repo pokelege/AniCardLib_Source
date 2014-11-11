@@ -523,7 +523,10 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			theDot = glm::dot( lineToDot , normal );
 			quadResult.pt[3] = glm::ivec2( theDot * normal ) + quad.line[3]->start;
 
-			markerPack->matchMarker( quadResult , grayscaleImage, width, height );
+			if ( markerPack->matchMarker( quadResult , grayscaleImage , width , height ) )
+			{
+				quadResults.push_back( quadResult );
+			}
 			//float* vectorMult = new float[8];
 			//vectorMult[0] = ( float ) ( quadResult.pt[0].x - 618.776f ) / 893.48f;
 			//vectorMult[1] = ( float ) ( quadResult.pt[1].x - 618.776f) / 893.48f ;
@@ -594,8 +597,6 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			//delete[] matrix;
 			//delete[] vectorMult;
 
-
-			quadResults.push_back( quadResult );
 			//debug
 			{
 				canGrab = false;
@@ -692,9 +693,10 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		found.transform = quadResults[i].transform;
 		found.center = center;
 		found.cardIndex = quadResults[i].markerID;
-
+		found.dissimilarity = quadResults[i].dissimilarity;
 		toSend.push_back( found );
 	}
+	std::sort( toSend.begin() , toSend.end() , dissimilarityCompare );
 	canGrabMarkerFound = true;
 
 	//std::cout << "num lines " << theLines.size() << std::endl;
@@ -1267,3 +1269,5 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 	//}
 	return tempLines;
 }
+
+bool dissimilarityCompare( FoundMarkerInfo i , FoundMarkerInfo j ) { return ( i.dissimilarity < j.dissimilarity ); }

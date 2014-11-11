@@ -41,6 +41,7 @@ struct ANICARDLIB_SHARED Quad
 { 
 	glm::vec2 pt[4];
 	glm::mat4 transform;
+	unsigned long dissimilarity;
 	unsigned int markerID;
 };
 
@@ -48,6 +49,7 @@ struct ANICARDLIB_SHARED FoundMarkerInfo
 {
 	glm::mat4 transform;
 	glm::vec2 center;
+	unsigned long dissimilarity;
 	unsigned int cardIndex;
 };
 class MarkerPack;
@@ -79,3 +81,5 @@ public:
 	bool finishedUsingMarkerFound();
 	static ARMarkerDetector global;
 };
+
+bool dissimilarityCompare( FoundMarkerInfo i , FoundMarkerInfo j );
