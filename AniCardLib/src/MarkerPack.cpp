@@ -348,6 +348,8 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 
 MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWithMarkerInfo info )
 {
+	//AniCardLib::Clock lock;
+	//lock.Start();
 	FoundMarkerInfo markerFoundInfo;
 	
 	float markerWidth = ( float ) cards->getMarker( info.marker )->width;
@@ -405,13 +407,15 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 	glm::mat4 transform;
 	if ( determinant != 0 )
 	{
-
+		//AniCardLib::Clock clock;
+		//clock.Start();
 		MathHelpers::preAdj( matrix , 8 );
 
 		MathHelpers::Transpose( matrix , 8 );
 		MathHelpers::Multiply( matrix , 1.0f / determinant , 8 );
 
 		MathHelpers::MultiplyVector( matrix , vectorMult , 8 );
+		//std::cout << "clock " << clock.Stop() << std::endl;
 		markerFoundInfo.theAs[0] = vectorMult[0];
 		markerFoundInfo.theAs[1] = vectorMult[1];
 		markerFoundInfo.theAs[2] = vectorMult[2];
@@ -482,6 +486,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 	//std::cout << info.marker << std::endl;
 	delete[] matrix;
 	delete[] vectorMult;
+	//std::cout << lock.Stop() << std::endl;
 	return markerFoundInfo;
 }
 

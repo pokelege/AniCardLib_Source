@@ -526,11 +526,14 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			theDot = glm::dot( lineToDot , normal );
 			quadResult.pt[3] = glm::ivec2( theDot * normal ) + quad.line[3]->start;
 			//quadResult.pt[3] = quad.line[3]->start;
-
+			//AniCardLib::Clock c;
+			//c.Start();
+			
 			if ( markerPack->matchMarker( quadResult , grayscaleImage , width , height ) )
 			{
 				quadResults.push_back( quadResult );
 			}
+			//std::cout << c.Stop() << std::endl;
 			//float* vectorMult = new float[8];
 			//vectorMult[0] = ( float ) ( quadResult.pt[0].x - 618.776f ) / 893.48f;
 			//vectorMult[1] = ( float ) ( quadResult.pt[1].x - 618.776f) / 893.48f ;
