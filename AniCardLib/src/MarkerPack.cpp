@@ -299,48 +299,50 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 	//	//std::cout << "{" << translateVector.x << "," << translateVector.y << "," << translateVector.z << "}" << std::endl;
 	//}
 
-	//while ( numUsing ) std::cout << "using at markerpack" << std::endl;
-	//canGrab = false;
-	//if ( debugPicture && ( markers[resultantMarker.markerID].width != width || markers[resultantMarker.markerID].height != height ) )
-	//{
-	//	delete[] debugPicture;
-	//	debugPicture = 0;
-	//	width = 0;
-	//	height = 0;
-	//}
-	//if ( !debugPicture )
-	//{
-	//	debugPicture = new unsigned char[( ( int ) markers[resultantMarker.markerID].width * ( int ) markers[resultantMarker.markerID].height ) * 4];
-	//	width = ( long ) markers[resultantMarker.markerID].width;
-	//	height = ( long ) markers[resultantMarker.markerID].height;
-	//}
-
-	//for ( unsigned long y = 0; y < height; ++y )
-	//{
-	//	for ( unsigned long x = 0; x < width; ++x )
-	//	{
-	//		float Xi = ( resultantMarker.theAs[0] * x + resultantMarker.theAs[1] * y + resultantMarker.theAs[2] ) /
-	//			( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
-	//		float Yi = ( resultantMarker.theAs[3] * x + resultantMarker.theAs[4] * y + resultantMarker.theAs[5] ) /
-	//			( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
-	//		//debugPicture[( y * 4 * width ) + ( x * 4 )] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
-	//		//debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
-	//		//debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
-	//		unsigned char value = 0;
-	//		if ( picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )] > 255 / 2 ) value = 255;
-	//		debugPicture[( y * 4 * width ) + ( x * 4 )] = value;
-	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = value;
-	//		debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = value;
-	//		//unsigned long toAdd = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )] - markers[resultantMarker.markerID].bytes[( y * markers[resultantMarker.markerID].width ) + x];
-	//		//std::cout << toAdd << std::endl;
-	//	}
-	//}
-	////std::cout << "dissimilarity " << resultantMarker.dissimilarity << std::endl;
-	//canGrab = true;
+//canGrab = false;
+//	while ( numUsing ) std::cout << "using at markerpack" << std::endl;
+//
+//	if ( debugPicture && ( ( long ) getMarker( resultantMarker.markerID )->width != width || ( long ) getMarker( resultantMarker.markerID )->height != height ) )
+//	{
+//		delete[] debugPicture;
+//		debugPicture = 0;
+//		width = 0;
+//		height = 0;
+//	}
+//	if ( !debugPicture )
+//	{
+//		debugPicture = new unsigned char[( ( int ) getMarker( resultantMarker.markerID )->width * ( int ) getMarker( resultantMarker.markerID )->height ) * 4];
+//		width = ( long ) getMarker( resultantMarker.markerID )->width;
+//		height = ( long ) getMarker( resultantMarker.markerID )->height;
+//	}
+//
+//	for (  long y = 0; y < height; ++y )
+//	{
+//		for (  long x = 0; x < width; ++x )
+//		{
+//			float Xi = ( resultantMarker.theAs[0] * x + resultantMarker.theAs[1] * y + resultantMarker.theAs[2] ) /
+//				( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
+//			float Yi = ( resultantMarker.theAs[3] * x + resultantMarker.theAs[4] * y + resultantMarker.theAs[5] ) /
+//				( resultantMarker.theAs[6] * x + resultantMarker.theAs[7] * y + 1 );
+//			//debugPicture[( y * 4 * width ) + ( x * 4 )] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
+//			//debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
+//			//debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = markers[resultantMarker.markerID].bytes[(y *markers[resultantMarker.markerID].width) + x];
+//			unsigned char value = 0;
+//			if ( picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )] > 255 / 2 ) value = 255;
+//			debugPicture[( y * 4 * width ) + ( x * 4 )] = value;
+//			debugPicture[( y * 4 * width ) + ( x * 4 ) + 1] = value;
+//			debugPicture[( y * 4 * width ) + ( x * 4 ) + 2] = value;
+//			//unsigned long toAdd = picture[( ( long ) Yi * pictureWidth ) + ( long ) ( Xi )] - markers[resultantMarker.markerID].bytes[( y * markers[resultantMarker.markerID].width ) + x];
+//			//std::cout << toAdd << std::endl;
+//		}
+//	}
+//	////std::cout << "dissimilarity " << resultantMarker.dissimilarity << std::endl;
+//	canGrab = true;
 	//delete[] matrix;
 	//delete[] vectorMult;
 	quad.markerID = resultantMarker.markerID;
 	quad.dissimilarity = resultantMarker.dissimilarity;
+	//std::cin.get();
 	return true;
 }
 
@@ -432,19 +434,24 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				float Yi = ( vectorMult[3] * x + vectorMult[4] * y + vectorMult[5] ) /
 					( vectorMult[6] * x + vectorMult[7] * y + 1 );
 				if ( Xi < 0 || Yi < 0 || Xi >= info.pictureWidth || Yi >= info.pictureHeight ) continue;
-				unsigned char picturePixel = 0;
+				int picturePixel = 0;
 				//std::cout << (( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )) << " " << (info.pictureWidth * info.pictureHeight) << std::endl;
 				//std::cout << Xi << " " << Yi << std::endl;
 				if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
 				unsigned char* thePointer = cards->getPicturePointer( info.marker );
 				//std::cout << "pass picture test" << std::endl;
-				unsigned long iOffset = ( unsigned long ) ( ( y * 4 * cards->getMarker( info.marker )->width ) + ( x * 4 ) );
+
+				long imageX = cards->getMarker( info.marker )->width - x;
+				imageX = cards->getMarker( info.marker )->width + imageX;
+
+				unsigned long iOffset = ( unsigned long ) ( ( y * 4 * cards->getMarker( info.marker )->width ) + ( (unsigned long)imageX * 4 ) );
 				float grayPixel = ( ( float ) thePointer[iOffset] + ( float ) thePointer[iOffset + 1] + ( float ) thePointer[iOffset + 2] ) / 3.0f;
-				unsigned char result = 0;
+				int result = 0;
 				if ( grayPixel > 128 ) result = 255;
 
-				unsigned long toAdd = picturePixel - result;
-				difference += toAdd * toAdd;
+				int toAdd = ((int)picturePixel) - ((int)result);
+				//if(toAdd < 0) std::cout << picturePixel << " - " << result << " = " << toAdd << std::endl;
+				difference += (unsigned long)(toAdd * toAdd);
 				if ( difference > highestDissimilarity )
 				{
 					difference = ULONG_MAX;

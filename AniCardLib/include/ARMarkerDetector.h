@@ -82,4 +82,4 @@ public:
 	static ARMarkerDetector global;
 };
 
-bool dissimilarityCompare( FoundMarkerInfo i , FoundMarkerInfo j );
+bool dissimilarityCompare( FoundMarkerInfo& i , FoundMarkerInfo& j );

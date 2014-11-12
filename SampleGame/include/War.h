@@ -10,7 +10,7 @@ class GameObject;
 struct AnimationRenderingInfo;
 class QTimer;
 struct RenderableInfo;
-enum AnimationState {None, ToFight, EndFight};
+enum AnimationState {None, ToFight, EndFight, Land};
 class War : public QGLWidget
 {
 	Q_OBJECT;
@@ -25,6 +25,8 @@ class War : public QGLWidget
 	FoundMarkerInfo marker1 , marker2;
 	glm::vec3 player1OldPos , player2OldPos;
 	AnimationState aniState;
+	float landMax;
+	float land;
 	float lerp;
 	float speed;
 	bool animating;

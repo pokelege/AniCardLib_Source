@@ -35,6 +35,8 @@ War::War() :cameraSource(0) , animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
 	maxFails = 100;
+	landMax = 1;
+	land = 0;
 }
 War::~War()
 {
@@ -227,13 +229,13 @@ void War::animationUpdate()
 				aniState = EndFight;
 				if ( marker1.cardIndex % 13 > marker2.cardIndex % 13 )
 				{
-					animation->play( 0 );
+					animation->play( 3 );
 					animation2->play( 2 );
 				}
 				else if ( marker1.cardIndex % 13 < marker2.cardIndex % 13 )
 				{
 					animation->play( 2 );
-					animation2->play( 0 );
+					animation2->play( 3 );
 				}
 				else
 				{
@@ -249,15 +251,31 @@ void War::animationUpdate()
 			if ( lerp <= 0 )
 			{
 				lerp = 0;
-				aniState = None;
-				animation->play( 0 );
-				animation2->play( 0 );
-				animating = false;
-				player1->active = false;
-				player2->active = false;
+				aniState = Land;
+				if ( marker1.cardIndex % 13 > marker2.cardIndex % 13 )
+				{
+					animation->play( 4 );
+				}
+				else if ( marker1.cardIndex % 13 < marker2.cardIndex % 13 )
+				{
+					animation2->play( 4 );
+				}
+				land = landMax;
 			}
 			player1->translate = glm::mix( player1OldPos , worldCenterPos , lerp );
 			player2->translate = glm::mix( player2OldPos , worldCenterPos , lerp );
+			break;
+		case Land:
+			land -= Clock::dt;
+			if ( land <= 0 )
+			{
+				aniState = None;
+				animating = false;
+				animation->play( 0 );
+				animation2->play( 0 );
+				player1->active = false;
+				player2->active = false;
+			}
 			break;
 		default:
 			aniState = ToFight;
@@ -287,9 +305,9 @@ bool War::findMarkers()
 			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) / 2 , ( list->at( 0 ).center.y * plane->scale.y ) / 2 , 0 );
 			//diamond->translate = characterPos;
 			player1->translate = characterPos;
-			std::cout <<list->at( 0 ).cardIndex << std::endl;
-			std::cout << list->at( 0 ).dissimilarity << std::endl;
-			std::cout << list->size() << std::endl;
+			//std::cout <<list->at( 0 ).cardIndex << std::endl;
+			//std::cout << list->at( 0 ).dissimilarity << std::endl;
+			//std::cout << list->size() << std::endl;
 			renderable1->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex );
 			renderable1->swapTexture( MarkerPack::global.getCardTexture( list->at( 0 ).cardIndex ) , 0 );
 			player1OldPos = characterPos;
