@@ -46,6 +46,7 @@ War::~War()
 	delete animation2;
 	delete timer;
 	delete cameraSource;
+	delete fpsInput;
 	AudioController::globalAudioController.destroy();
 }
 void War::initializeGL()
@@ -70,7 +71,7 @@ void War::initializeGL()
 		std::cout << errors.c_str() << std::endl;
 	}
 
-	GeometryInfo* geometry = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/plane.pmd" , GraphicsBufferManager::globalBufferManager );
+	GeometryInfo* geometry = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/TableTop.pmd" , GraphicsBufferManager::globalBufferManager );
 	geometry->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 	geometry->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	geometry->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
@@ -89,7 +90,6 @@ void War::initializeGL()
 	renderable->setRenderableUniform( "debug" , PT_INT , &texture );
 	plane = GameObjectManager::globalGameObjectManager.addGameObject();
 	plane->addComponent( renderable );
-	plane->scale = glm::vec3( 10 , 10 , 10 );
 	//renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &identity , 1 );
 	Camera* camera = GraphicsCameraManager::globalCameraManager.addCamera();
 	camera->initializeRenderManagers();
@@ -99,7 +99,7 @@ void War::initializeGL()
 	GameObject* player = GameObjectManager::globalGameObjectManager.addGameObject();
 	player->translate = glm::vec3( 0 , 0 , 25 );
 	player->addComponent( camera );
-	FirstPersonCameraInput* fpsInput = new FirstPersonCameraInput;
+	fpsInput = new FirstPersonCameraInput;
 	fpsInput->moveSensitivity = 1;
 	fpsInput->rotationSensitivity = 0.1f;
 	player->addComponent( fpsInput );
@@ -117,7 +117,6 @@ void War::initializeGL()
 	player1 = GameObjectManager::globalGameObjectManager.addGameObject();
 	player1->addComponent( renderable1 );
 	player1->addComponent( animation );
-	player1->rotate = glm::vec3( 90 , 0 , 0 );
 	player1->active = false;
 
 	renderable2 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
@@ -132,7 +131,6 @@ void War::initializeGL()
 	player2 = GameObjectManager::globalGameObjectManager.addGameObject();
 	player2->addComponent(renderable2 );
 	player2->addComponent( animation2 );
-	player2->rotate = glm::vec3( 90 , 0 , 0 );
 	player2->active = false;
 
 	
@@ -207,6 +205,7 @@ void War::update()
 	{
 		animationUpdate();
 	}
+	
 	GameObjectManager::globalGameObjectManager.earlyUpdateParents();
 	GameObjectManager::globalGameObjectManager.updateParents();
 	GameObjectManager::globalGameObjectManager.lateUpdateParents();
@@ -218,7 +217,7 @@ void War::animationUpdate()
 {
 	glm::vec2 center = 0.5f * (marker1.center + marker2.center);
 	
-	glm::vec3 worldCenterPos( (center.x * plane->scale.x ) / 2 , ( center.y * plane->scale.y ) / 2 , 10 );
+	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 10 , ( center.y * plane->scale.y ) / 2 );
 	switch ( aniState )
 	{
 		case ToFight:
@@ -281,8 +280,8 @@ void War::animationUpdate()
 			aniState = ToFight;
 			animation->play( 1 );
 			animation2->play( 1 );
-			player1->rotate = glm::eulerAngles(glm::quat_cast(glm::lookAt( player1->translate , worldCenterPos - glm::vec3(0,0,10) , glm::vec3( 0 , 0 , -1 ))));
-			player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt( player2->translate , worldCenterPos - glm::vec3( 0 , 0 , 10 ) , glm::vec3( 0 , 0 , -1 ) ) ) );
+			player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt( player1->translate , worldCenterPos - glm::vec3( 0 , 10 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
+			player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt( player2->translate , worldCenterPos - glm::vec3(0,10,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
 			break;
 	}
 }
@@ -298,22 +297,14 @@ bool War::findMarkers()
 	{
 		if ( list && list->size() )
 		{
-			//std::cout << list->size() << std::endl;
 			player1Fails = 0;
-			//transform = list->at( 0 );
-			//transform *= glm::inverse( transform );
-			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) / 2 , ( list->at( 0 ).center.y * plane->scale.y ) / 2 , 0 );
-			//diamond->translate = characterPos;
+			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) , 0 , -( list->at( 0 ).center.y * plane->scale.z ) );
 			player1->translate = characterPos;
-			//std::cout <<list->at( 0 ).cardIndex << std::endl;
-			//std::cout << list->at( 0 ).dissimilarity << std::endl;
-			//std::cout << list->size() << std::endl;
 			renderable1->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex );
 			renderable1->swapTexture( MarkerPack::global.getCardTexture( list->at( 0 ).cardIndex ) , 0 );
 			player1OldPos = characterPos;
 			marker1 = list->at( 0 );
 			player1->active = true;
-			//std::cout << list->at( 0 ).cardIndex << std::endl;
 			if ( list->size() < 2 )
 			{
 				if ( player2->active && player2Fails < maxFails ) ++player2Fails;
@@ -322,14 +313,10 @@ bool War::findMarkers()
 			{
 				for ( unsigned int i = 1; i < list->size(); ++i )
 				{
-					glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x ) / 2 , ( list->at( i ).center.y * plane->scale.y ) / 2 , 0 );
+					glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x )  , 0 , -( list->at( i ).center.y * plane->scale.y ) );
 					if ( glm::length( characterPos - characterPos2 ) > 5 )
 					{
 						player2Fails = 0;
-						//transform = list->at( 0 );
-						//transform *= glm::inverse( transform );
-						glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x ) / 2 , ( list->at( i ).center.y * plane->scale.y ) / 2 , 0 );
-						//diamond->translate = characterPos;
 						player2->translate = characterPos2;
 						renderable2->geometryInfo = MarkerPack::global.getCardGeometry( list->at( i ).cardIndex );
 						renderable2->swapTexture( MarkerPack::global.getCardTexture( list->at( i ).cardIndex ) , 0 );
@@ -372,9 +359,9 @@ void War::paintGL()
 		{
 			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) pictureData, width , height , 0 );
 			float toSize = std::min( (float)width , (float)height );
-			toSize = 20.0f / toSize;
+			toSize = 10.0f / toSize;
 			//std::cout << toSize * width << std::endl;
-			plane->scale = glm::vec3( toSize * width , toSize * height , 1 );
+			plane->scale = glm::vec3( toSize * width , 1 , toSize * height );
 			cameraSource->fetcher->finishedUsing();
 		}
 	}

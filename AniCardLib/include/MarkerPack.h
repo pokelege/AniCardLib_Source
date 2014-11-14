@@ -12,6 +12,7 @@ class ANICARDLIB_SHARED MarkerPack
 		const unsigned char* picture;
 		long pictureWidth;
 		long pictureHeight;
+		unsigned int AsID;
 		glm::vec2 pos[4];
 	};
 
@@ -20,9 +21,9 @@ class ANICARDLIB_SHARED MarkerPack
 		unsigned long dissimilarity;
 		unsigned int markerID;
 		glm::vec2 points[4];
-		float theAs[8];
 	};
 	AniCardLibFileInfo* cards;
+	float* theAs[4];
 	unsigned char* debugPicture;
 	long width , height;
 	unsigned int numUsing;

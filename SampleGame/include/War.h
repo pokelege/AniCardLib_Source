@@ -10,11 +10,12 @@ class GameObject;
 struct AnimationRenderingInfo;
 class QTimer;
 struct RenderableInfo;
+class FirstPersonCameraInput;
 enum AnimationState {None, ToFight, EndFight, Land};
 class War : public QGLWidget
 {
 	Q_OBJECT;
-
+	FirstPersonCameraInput* fpsInput;
 	WebCamSource* cameraSource;
 	TextureInfo* planeTexture, *planeDebugTexture;
 	GameObject* plane;
