@@ -11,6 +11,7 @@ struct AnimationRenderingInfo;
 class QTimer;
 struct RenderableInfo;
 class FirstPersonCameraInput;
+class Camera;
 enum AnimationState {None, ToFight, EndFight, Land};
 class War : public QGLWidget
 {
@@ -18,10 +19,11 @@ class War : public QGLWidget
 	FirstPersonCameraInput* fpsInput;
 	WebCamSource* cameraSource;
 	TextureInfo* planeTexture, *planeDebugTexture;
-	GameObject* plane;
+	GameObject* plane , *player;
+	Camera* camera;
 	AnimationRenderingInfo* animation, *animation2;
 	QTimer* timer;
-	GameObject* player1, *player2;
+	GameObject* player1 , *player2;
 	RenderableInfo* renderable1, *renderable2;
 	FoundMarkerInfo marker1 , marker2;
 	glm::vec3 player1OldPos , player2OldPos;

@@ -84,23 +84,58 @@ void War::initializeGL()
 	renderable->geometryInfo = geometry;
 	renderable->shaderInfo = shader;
 	renderable->alphaBlendingEnabled = false;
-	renderable->culling = CT_NONE;
+	renderable->culling = CT_BACK;
 	renderable->addTexture( planeTexture );
 	renderable->addTexture( planeDebugTexture );
 	renderable->setRenderableUniform( "debug" , PT_INT , &texture );
 	plane = GameObjectManager::globalGameObjectManager.addGameObject();
 	plane->addComponent( renderable );
-	//renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &identity , 1 );
-	Camera* camera = GraphicsCameraManager::globalCameraManager.addCamera();
+	GeometryInfo* tableGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/TableBody.pmd",GraphicsBufferManager::globalBufferManager );
+	tableGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	tableGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+	tableGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+	tableGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+	Renderable* tableRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	tableRenderable->initialize( 10 , 1 );
+	tableRenderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	tableRenderable->geometryInfo = tableGeo;
+	tableRenderable->shaderInfo = shader2;
+	tableRenderable->alphaBlendingEnabled = false;
+	tableRenderable->culling = CT_BACK;
+	tableRenderable->addTexture( GraphicsTextureManager::globalTextureManager.addTexture( "assets/textures/table.tex" ) );
+	GameObject* table = GameObjectManager::globalGameObjectManager.addGameObject();
+	table->addComponent( tableRenderable );
+	plane->addChild( table );
+
+
+	GeometryInfo* sceneGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/Scene.pmd" , GraphicsBufferManager::globalBufferManager );
+	sceneGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	sceneGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+	sceneGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+	sceneGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+	Renderable* sceneRenderable = GraphicsRenderingManager::globalRenderingManager.addRenderable();
+	sceneRenderable->initialize( 10 , 1 );
+	sceneRenderable->sharedUniforms = &GraphicsSharedUniformManager::globalSharedUniformManager;
+	sceneRenderable->geometryInfo = sceneGeo;
+	sceneRenderable->shaderInfo = shader2;
+	sceneRenderable->alphaBlendingEnabled = false;
+	sceneRenderable->culling = CT_BACK;
+	sceneRenderable->addTexture( GraphicsTextureManager::globalTextureManager.addTexture( "assets/textures/scene.tex" ) );
+	GameObject* scene = GameObjectManager::globalGameObjectManager.addGameObject();
+	scene->addComponent( sceneRenderable );
+
+
+	camera = GraphicsCameraManager::globalCameraManager.addCamera();
 	camera->initializeRenderManagers();
 	camera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );
 	camera->FOV = 60.0f;
 	camera->nearestObject = 0.01f;
-	GameObject* player = GameObjectManager::globalGameObjectManager.addGameObject();
-	player->translate = glm::vec3( 0 , 0 , 25 );
+	player = GameObjectManager::globalGameObjectManager.addGameObject();
+	player->translate = plane->translate + glm::vec3(0,2,2);
+	camera->direction = glm::normalize( plane->translate - player->translate );
 	player->addComponent( camera );
 	fpsInput = new FirstPersonCameraInput;
-	fpsInput->moveSensitivity = 1;
+	fpsInput->moveSensitivity = 0.1f;
 	fpsInput->rotationSensitivity = 0.1f;
 	player->addComponent( fpsInput );
 
@@ -118,6 +153,7 @@ void War::initializeGL()
 	player1->addComponent( renderable1 );
 	player1->addComponent( animation );
 	player1->active = false;
+	player1->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
 
 	renderable2 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
 	renderable2->initialize( 10 , 1 );
@@ -132,7 +168,7 @@ void War::initializeGL()
 	player2->addComponent(renderable2 );
 	player2->addComponent( animation2 );
 	player2->active = false;
-
+	player2->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
 	
 	MarkerPack::global.load( "assets/cardPack.aclf" );
 	for ( unsigned int i = 0; i < MarkerPack::global.getGeometryListSize(); ++i )
@@ -197,6 +233,11 @@ void War::update()
 	WindowInfo::height = height();
 	Clock::update();
 
+	if ( !animating )
+	{
+		player->translate = plane->translate + glm::vec3( 0 , 2 , 2 );
+		camera->direction = glm::normalize( plane->translate - player->translate );
+	}
 	if ( !animating && findMarkers() )
 	{
 		animating = true;
@@ -217,7 +258,7 @@ void War::animationUpdate()
 {
 	glm::vec2 center = 0.5f * (marker1.center + marker2.center);
 	
-	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 10 , ( center.y * plane->scale.y ) / 2 );
+	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 1 , ( center.y * plane->scale.y ) / 2 );
 	switch ( aniState )
 	{
 		case ToFight:
@@ -244,6 +285,10 @@ void War::animationUpdate()
 			}
 			player1->translate = glm::mix( player1OldPos , worldCenterPos , lerp );
 			player2->translate = glm::mix( player2OldPos , worldCenterPos , lerp );
+			player->translate = glm::mix( plane->translate + glm::vec3( 0 , 2 , 2 ), worldCenterPos + glm::vec3( 0 , 0 , 0.5f ),lerp );
+			camera->direction = glm::mix( glm::normalize( plane->translate - player->translate ),
+										  glm::normalize( glm::vec3( 0 , 0 , -0.5f )),
+										  lerp);
 			break;
 		case EndFight:
 			lerp -= speed * Clock::dt;
@@ -263,6 +308,10 @@ void War::animationUpdate()
 			}
 			player1->translate = glm::mix( player1OldPos , worldCenterPos , lerp );
 			player2->translate = glm::mix( player2OldPos , worldCenterPos , lerp );
+			player->translate = glm::mix( plane->translate + glm::vec3( 0 , 2 , 2 ) , worldCenterPos + glm::vec3( 0 , 0 , 0.5f ) , lerp );
+			camera->direction = glm::mix( glm::normalize( plane->translate - player->translate ) ,
+										  glm::normalize( glm::vec3( 0 , 0 , -0.5f ) ) ,
+										  lerp );
 			break;
 		case Land:
 			land -= Clock::dt;
@@ -280,8 +329,8 @@ void War::animationUpdate()
 			aniState = ToFight;
 			animation->play( 1 );
 			animation2->play( 1 );
-			player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt( player1->translate , worldCenterPos - glm::vec3( 0 , 10 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
-			player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt( player2->translate , worldCenterPos - glm::vec3(0,10,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
+			player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player1OldPos , worldCenterPos - glm::vec3( 0 , 1 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
+			player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player2OldPos , worldCenterPos - glm::vec3(0,1,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
 			break;
 	}
 }
@@ -314,7 +363,7 @@ bool War::findMarkers()
 				for ( unsigned int i = 1; i < list->size(); ++i )
 				{
 					glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x )  , 0 , -( list->at( i ).center.y * plane->scale.y ) );
-					if ( glm::length( characterPos - characterPos2 ) > 5 )
+					if ( glm::length( characterPos - characterPos2 ) > 0.5f )
 					{
 						player2Fails = 0;
 						player2->translate = characterPos2;
@@ -359,9 +408,9 @@ void War::paintGL()
 		{
 			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) pictureData, width , height , 0 );
 			float toSize = std::min( (float)width , (float)height );
-			toSize = 10.0f / toSize;
+			toSize = 1.0f / toSize;
 			//std::cout << toSize * width << std::endl;
-			plane->scale = glm::vec3( toSize * width , 1 , toSize * height );
+			plane->scale = glm::vec3( toSize * width , 1.0f , toSize * height );
 			cameraSource->fetcher->finishedUsing();
 		}
 	}
