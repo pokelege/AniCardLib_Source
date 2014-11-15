@@ -415,14 +415,14 @@ void War::paintGL()
 		}
 	}
 
-	//unsigned char* pictureData = 0;
-	//long width;
-	//long height;
-	//if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
-	//{
-	//	GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
-	//	ARMarkerDetector::global.finishedUsing();
-	//}
+	unsigned char* pictureData = 0;
+	long width;
+	long height;
+	if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
+	{
+		GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
+		ARMarkerDetector::global.finishedUsing();
+	}
 
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
 }

@@ -709,7 +709,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 	//std::cout << "num lines " << theLines.size() << std::endl;
 	//std::cout << "num quads " << quadResults.size() << std::endl;
 	//std::cout << "full algoTime " << c.Stop() << std::endl;
-	//std::cin.get();
+	std::cin.get();
 }
 
 bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index )
@@ -958,13 +958,13 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 
 	//	for ( unsigned int i = 0; i < edgels.size(); ++i )
 	//	{
-	//		//if ( edgels[i].edgel.angle > 215 && edgels[i].edgel.angle < 300 )
-	//		//{
+	//		if ( edgels[i].edgel.angle > 215 && edgels[i].edgel.angle < 300 )
+	//		{
 	//			unsigned long iOffset = ( unsigned long ) ( ( edgels[i].edgel.pos.y * 4 * this->width ) + ( edgels[i].edgel.pos.x * 4 ) );
 	//			copiedPictureInstance[iOffset] = ( unsigned char ) 255;
 	//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
 	//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
-	//		//}
+	//		}
 	//		//std::cout << edgels[i].edgel.pos.y << std::endl;
 	//		//std::cout << edgels[i].edgel.pos.x << std::endl;
 
@@ -972,7 +972,7 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 	//	canGrab = true;
 	//}
 
-	float angleThreshold = 15.0f;
+	float angleThreshold = 10.0f;
 	float maxDistance = ((float)(width + height) / 2.0f) * 3.0f;
 	unsigned int maxIterations = (unsigned int)(2 * (height * width));
 	unsigned int minNumEdgels = 5;
@@ -991,6 +991,7 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 			if ( e1 == e2 ) continue;
 
 			float angleTest = e1->edgel.angle - e2->edgel.angle;
+			angleTest = std::min( angleTest , e1->edgel.angle + 360 - e2->edgel.angle );
 			found = abs( angleTest ) <= angleThreshold;
 		}
 		if ( !found ) continue;
@@ -1035,8 +1036,8 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 		}
 		//debug
 		//{
-		//	while ( numUsing ) std::cout << numUsing << std::endl;
 		//	canGrab = false;
+		//	while ( numUsing ) std::cout << numUsing << std::endl;
 
 		//	for ( unsigned int i = 0; i < supportedEdgels.size(); ++i )
 		//	{
@@ -1065,9 +1066,9 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 		//	canGrab = false;
 		//	//if ( line.angle > 215 && line.angle < 300 )
 		//	//{
-		//	unsigned short randColor = rand() % 255;
-		//	unsigned short randColor2 = rand() % 255;
-		//	unsigned short randColor3 = rand() % 255;
+		//	//unsigned short randColor = rand() % 255;
+		//	//unsigned short randColor2 = rand() % 255;
+		//	//unsigned short randColor3 = rand() % 255;
 		//		glm::vec2 normalized = glm::normalize( glm::vec2( line.end ) - glm::vec2( line.start ) );
 		//		glm::vec2 testPixel = glm::vec2( line.start );
 		//		glm::ivec2 lastPixel = line.start;
@@ -1085,7 +1086,7 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 		//		while ( glm::length( testPixel - glm::vec2( line.start ) ) < glm::length( glm::vec2( line.end ) - glm::vec2( line.start ) ) && lastPixel.x >= 0 && lastPixel.x < this->width && lastPixel.y >= 0 && lastPixel.y < this->height )
 		//		{
 		//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-		//			if ( copiedPictureInstance[iOffset + 1] = !255 && copiedPictureInstance[iOffset + 2] != 255 )
+		//			if ( copiedPictureInstance[iOffset + 1] != 255 && copiedPictureInstance[iOffset + 2] != 255 )
 		//			{
 		//				copiedPictureInstance[iOffset] = ( unsigned char ) 255;
 		//				copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
@@ -1138,42 +1139,45 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 		//std::cout << glm::length( glm::vec2( line.start ) - glm::vec2( line.end ) ) << std::endl;
 
 		////debug
-		//{
-		//	while ( numUsing ) std::cout << numUsing << std::endl;
-		//	canGrab = false;
+		{
+			canGrab = false;
+			while ( numUsing ) std::cout << numUsing << std::endl;
 
-		//	for ( unsigned int i = 0; i < tempLines.size(); ++i )
-		//	{
-		//		glm::vec2 normalized = glm::normalize( glm::vec2( line.end ) - glm::vec2( line.start ) );
-		//		bool extendable = true;
-		//		glm::vec2 testPixel = glm::vec2( line.start );
-		//		glm::ivec2 lastPixel = line.start;
-		//		unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-		//		//std::cout << lastPixel.y << std::endl;
-		//		//std::cout << lastPixel.x << std::endl;
-		//		copiedPictureInstance[iOffset] = ( unsigned char ) 255;
-		//		copiedPictureInstance[iOffset+1] = ( unsigned char ) 0;
-		//		copiedPictureInstance[iOffset+2] = ( unsigned char ) 0;
-		//		while ( glm::ivec2( testPixel ) == lastPixel )
-		//		{
-		//			testPixel += normalized;
-		//		}
-		//		lastPixel = glm::ivec2( testPixel );
-		//		while ( extendable && glm::length( testPixel - glm::vec2( line.start ) ) <= glm::length( glm::vec2( line.end ) - glm::vec2( line.start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
-		//		{
-		//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-		//			copiedPictureInstance[iOffset] = ( unsigned char ) 255;
-		//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
-		//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
-		//			while ( glm::ivec2( testPixel ) == lastPixel )
-		//			{
-		//				testPixel += normalized;
-		//			}
-		//			lastPixel = glm::ivec2( testPixel );
-		//		}
-		//	}
-		//	canGrab = true;
-		//}
+			for ( unsigned int i = 0; i < tempLines.size(); ++i )
+			{
+				glm::vec2 normalized = glm::normalize( glm::vec2( line.end ) - glm::vec2( line.start ) );
+				bool extendable = true;
+				glm::vec2 testPixel = glm::vec2( line.start );
+				glm::ivec2 lastPixel = line.start;
+				unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+
+				copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+				copiedPictureInstance[iOffset+1] = ( unsigned char ) 0;
+				copiedPictureInstance[iOffset+2] = ( unsigned char ) 0;
+
+				if ( !( extendable ) ) std::cout << "lefail extend" << std::endl;
+				if ( !( glm::length( testPixel - glm::vec2( line.start ) ) <= glm::length( glm::vec2( line.end ) - glm::vec2( line.start ) ) ) ) std::cout << "lefail line distance" << std::endl;
+
+				while ( glm::ivec2( testPixel ) == lastPixel )
+				{
+					testPixel += normalized;
+				}
+				lastPixel = glm::ivec2( testPixel );
+				while ( extendable && glm::length( testPixel - glm::vec2( line.start ) ) <= glm::length( glm::vec2( line.end ) - glm::vec2( line.start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+				{
+					unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+					copiedPictureInstance[iOffset] = ( unsigned char ) 255;
+					copiedPictureInstance[iOffset + 1] = ( unsigned char ) 0;
+					copiedPictureInstance[iOffset + 2] = ( unsigned char ) 0;
+					while ( glm::ivec2( testPixel ) == lastPixel )
+					{
+						testPixel += normalized;
+					}
+					lastPixel = glm::ivec2( testPixel );
+				}
+			}
+			canGrab = true;
+		}
 	}
 
 	for ( unsigned int i = 0; i < tempLines.size(); ++i )
