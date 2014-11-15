@@ -1,3 +1,4 @@
+#define GLM_FORCE_RADIANS
 #include <War.h>
 #include <Graphics\CommonGraphicsCommands.h>
 #include <Core\GameObjectManger.h>
@@ -31,6 +32,7 @@
 #include <Input\FirstPersonCameraInput.h>
 #include <gtc\matrix_transform.hpp>
 #include <gtx\quaternion.hpp>
+#include <Misc\ExtraFunctions.h>
 War::War() :cameraSource(0) , animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
@@ -258,7 +260,7 @@ void War::animationUpdate()
 {
 	glm::vec2 center = 0.5f * (marker1.center + marker2.center);
 	
-	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 1 , ( center.y * plane->scale.y ) / 2 );
+	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 1 , -(( center.y * plane->scale.y ) / 2) );
 	switch ( aniState )
 	{
 		case ToFight:
@@ -329,8 +331,10 @@ void War::animationUpdate()
 			aniState = ToFight;
 			animation->play( 1 );
 			animation2->play( 1 );
-			player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player1OldPos , worldCenterPos - glm::vec3( 0 , 1 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
-			player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player2OldPos , worldCenterPos - glm::vec3(0,1,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
+			player1->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , ( worldCenterPos - glm::vec3( 0 , 1 , 0 ) ) - player1->translate , 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
+			player2->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , ( worldCenterPos - glm::vec3( 0 , 1 , 0 ) ) - player2->translate , 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
+			//player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player1OldPos , worldCenterPos - glm::vec3( 0 , 1 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
+			//player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player2OldPos , worldCenterPos - glm::vec3(0,1,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
 			break;
 	}
 }
