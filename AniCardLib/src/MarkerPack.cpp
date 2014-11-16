@@ -203,7 +203,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				int picturePixel = 0;
 				//std::cout << (( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )) << " " << (info.pictureWidth * info.pictureHeight) << std::endl;
 				//std::cout << Xi << " " << Yi << std::endl;
-				if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] > 128 ) picturePixel = 255;
+				if ( info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )] >= threshold ) picturePixel = 255;
 				unsigned char* thePointer = cards->getPicturePointer( info.marker );
 				//std::cout << "pass picture test" << std::endl;
 
@@ -213,7 +213,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				unsigned long iOffset = ( unsigned long ) ( ( y * 4 * cards->getMarker( info.marker )->width ) + ( (unsigned long)imageX * 4 ) );
 				float grayPixel = ( ( float ) thePointer[iOffset] + ( float ) thePointer[iOffset + 1] + ( float ) thePointer[iOffset + 2] ) / 3.0f;
 				int result = 0;
-				if ( grayPixel > 128 ) result = 255;
+				if ( grayPixel >= 128 ) result = 255;
 
 				int toAdd = ((int)picturePixel) - ((int)result);
 				//if(toAdd < 0) std::cout << picturePixel << " - " << result << " = " << toAdd << std::endl;
@@ -354,6 +354,22 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		delete[] vectorMult;
 	}
 
+	unsigned char minimum = UCHAR_MAX , maximum = 0;
+	for ( unsigned long y = 0; y < markerHeight; ++y )
+	{
+		for ( unsigned long x = 0; x < markerWidth; ++x )
+		{
+			float Xi = ( theAs[0][0] * x + theAs[0][1] * y + theAs[0][2] ) /
+				( theAs[0][6] * x + theAs[0][7] * y + 1 );
+			float Yi = ( theAs[0][3] * x + theAs[0][4] * y + theAs[0][5] ) /
+				( theAs[0][6] * x + theAs[0][7] * y + 1 );
+			if ( Xi < 0 || Yi < 0 || Xi >= info.pictureWidth || Yi >= info.pictureHeight ) continue;
+			unsigned char sample = info.picture[( ( long ) Yi * info.pictureWidth ) + ( long ) ( Xi )];
+			minimum = min( sample , minimum );
+			maximum = max( sample , maximum );
+		}
+	}
+	threshold = ( minimum + maximum ) / 2;
 	std::vector < std::future<FoundMarkerInfo>> closestMarkerCorners;
 	for ( unsigned int i = 0; i < cards->getMarkerListSize(); ++i )
 	{

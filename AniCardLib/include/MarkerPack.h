@@ -23,6 +23,7 @@ class ANICARDLIB_SHARED MarkerPack
 		glm::vec2 points[4];
 	};
 	AniCardLibFileInfo* cards;
+	unsigned char threshold;
 	float* theAs[4];
 	unsigned char* debugPicture;
 	long width , height;

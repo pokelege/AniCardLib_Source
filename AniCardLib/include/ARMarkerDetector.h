@@ -31,7 +31,8 @@ struct ANICARDLIB_SHARED Line
 struct ANICARDLIB_SHARED ConstructingQuad
 {
 	Line* line[4];
-	ConstructingQuad()
+	float angleError;
+	ConstructingQuad() : angleError(0)
 	{
 		for ( unsigned int i = 0; i < 4; ++i ) line[i] = 0;
 	}
@@ -43,6 +44,8 @@ struct ANICARDLIB_SHARED Quad
 	glm::mat4 transform;
 	unsigned long dissimilarity;
 	unsigned int markerID;
+	float angleError;
+	Quad() :angleError(0) {}
 };
 
 struct ANICARDLIB_SHARED FoundMarkerInfo
