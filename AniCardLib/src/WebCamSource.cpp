@@ -7,7 +7,8 @@
 #include <vidcap.h>
 #include <ksmedia.h>
 #include <comdef.h>
-WebCamSource::WebCamSource() : selectedCamera(0)
+#include <WebCamHelpers.h>
+WebCamSource::WebCamSource()
 {
 
 }
@@ -15,97 +16,39 @@ WebCamSource::~WebCamSource()
 {
 	destroy();
 }
-HRESULT WebCamSource::getListOfCameras( IEnumMoniker** theListToPopulate )
-{
-	HRESULT result;
-	if ( theListToPopulate )
-	{
-		ICreateDevEnum* deviceEnum = 0;
-		result = CoCreateInstance( CLSID_SystemDeviceEnum , NULL , CLSCTX_INPROC_SERVER , IID_PPV_ARGS( &deviceEnum ) );
-		if ( SUCCEEDED( result ) && deviceEnum )
-		{
-			result = deviceEnum->CreateClassEnumerator( CLSID_VideoInputDeviceCategory , theListToPopulate , 0 );
-			if ( result == S_FALSE ) result = VFW_E_NOT_FOUND;
-			deviceEnum->Release();
-		}
-	}
-	else
-	{
-		result = E_POINTER;
-	}
-	return result;
-}
 
-HRESULT WebCamSource::selectCamera( IMoniker& camera , std::vector<CameraConfigs>& caps )
-{
-	IBaseFilter* test = 0;
-	HRESULT result = camera.BindToObject(0,0,IID_IBaseFilter, reinterpret_cast<void**>(&test));
-	if ( SUCCEEDED( result ) ) selectedCamera = test;
-	IPin* cameraPin;
-	IEnumPins* enumPins;
-	selectedCamera->EnumPins( &enumPins );
-	while ( S_OK == enumPins->Next( 1 , &cameraPin , NULL ) )
-	{
-		PIN_DIRECTION pinDir;
-		cameraPin->QueryDirection( &pinDir );
-		if ( pinDir == PINDIR_OUTPUT ) break;
-	}
-
-	IAMStreamConfig* configuration;
-	cameraPin->QueryInterface( IID_IAMStreamConfig , ( void** ) &configuration );
-	int count , size;
-	configuration->GetNumberOfCapabilities( &count , &size );
-	if ( size == sizeof( VIDEO_STREAM_CONFIG_CAPS ) )
-	{
-		for ( int i = 0; i < count; ++i )
-		{
-			VIDEO_STREAM_CONFIG_CAPS con;
-			AM_MEDIA_TYPE* type;
-			if (SUCCEEDED(configuration->GetStreamCaps( i , &type , ( BYTE* ) &con ) ))
-			{
-				CameraConfigs lolz;
-				lolz.caps = con;
-				lolz.index = i;
-				caps.push_back( lolz );
-			}
-
-		}
-	}
-	return result;
-}
-
-void WebCamSource::selectResolution( CameraConfigs& config )
-{
-	IPin* cameraPin;
-	IEnumPins* enumPins;
-	selectedCamera->EnumPins( &enumPins );
-	while ( S_OK == enumPins->Next( 1 , &cameraPin , NULL ) )
-	{
-		PIN_DIRECTION pinDir;
-		cameraPin->QueryDirection( &pinDir );
-		if ( pinDir == PINDIR_OUTPUT ) break;
-	}
-
-	IAMStreamConfig* configuration;
-	cameraPin->QueryInterface( IID_IAMStreamConfig , ( void** ) &configuration );
-	int count , size;
-	configuration->GetNumberOfCapabilities( &count , &size );
-	if ( size == sizeof( VIDEO_STREAM_CONFIG_CAPS ) )
-	{
-		VIDEO_STREAM_CONFIG_CAPS con;
-		AM_MEDIA_TYPE* type;
-		if ( SUCCEEDED( configuration->GetStreamCaps( config.index , &type , ( BYTE* ) &con ) ) )
-		{
-			configuration->SetFormat( type );
-		}
-	}
-}
+//void WebCamSource::selectResolution( CameraConfigs& config )
+//{
+//	IPin* cameraPin;
+//	IEnumPins* enumPins;
+//	selectedCamera->EnumPins( &enumPins );
+//	while ( S_OK == enumPins->Next( 1 , &cameraPin , NULL ) )
+//	{
+//		PIN_DIRECTION pinDir;
+//		cameraPin->QueryDirection( &pinDir );
+//		if ( pinDir == PINDIR_OUTPUT ) break;
+//	}
+//
+//	IAMStreamConfig* configuration;
+//	cameraPin->QueryInterface( IID_IAMStreamConfig , ( void** ) &configuration );
+//	int count , size;
+//	configuration->GetNumberOfCapabilities( &count , &size );
+//	if ( size == sizeof( VIDEO_STREAM_CONFIG_CAPS ) )
+//	{
+//		VIDEO_STREAM_CONFIG_CAPS con;
+//		AM_MEDIA_TYPE* type;
+//		if ( SUCCEEDED( configuration->GetStreamCaps( config.index , &type , ( BYTE* ) &con ) ) )
+//		{
+//			configuration->SetFormat( type );
+//		}
+//	}
+//}
 
 
-HRESULT WebCamSource::initialize()
+int WebCamSource::initialize( CameraItem& camera , CameraMode& mode )
 {
 	CoCreateInstance( CLSID_FilterGraph , NULL , CLSCTX_INPROC_SERVER , IID_PPV_ARGS( &graph ) );
-	graph->AddFilter( selectedCamera , L"Camera" );
+	graph->AddFilter( camera.camera , L"Camera" );
 
 	IBaseFilter* converter;
 	CoCreateInstance( CLSID_DMOWrapperFilter , NULL , CLSCTX_INPROC_SERVER , IID_IBaseFilter , ( void** ) &converter );
