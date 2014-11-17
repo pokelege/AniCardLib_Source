@@ -7,9 +7,9 @@
 Setup::Setup()
 {
 	source = new WebCamSource;
-	IEnumMoniker* cameraList;
-	source->getListOfCameras( &cameraList );
-	IMoniker* selected = 0;
+
+	WebCamHelpers helper;
+	cameras = helper.getListOfCameras();
 	cameraSelection = new QComboBox;
 	resolutionSelection = new QComboBox;
 	QPushButton* button = new QPushButton( "Start" );
@@ -18,49 +18,29 @@ Setup::Setup()
 	layout->addWidget( resolutionSelection );
 	layout->addWidget( button );
 	setLayout( layout );
-	while ( cameraList->Next( 1 , &selected , NULL ) == S_OK )
+
+	for ( unsigned int i = 0; i < cameras.size(); ++i )
 	{
-		IPropertyBag* properties;
-		if ( FAILED( selected->BindToStorage( 0 , 0 , IID_PPV_ARGS( &properties ) ) ) )
-		{
-			selected->Release();
-			continue;
-		}
-
-		VARIANT var;
-		VariantInit( &var );
-
-		if ( SUCCEEDED( properties->Read( L"FriendlyName" , &var , 0 ) ) )
-		{
-			cameras.push_back( selected );
-			cameraSelection->addItem( QString::fromUtf16((ushort*)var.bstrVal) );
-		}
-		else
-		{
-			selected->Release();
-		}
+		cameraSelection->addItem( cameras.at(i).name.c_str() );
 	}
-
+	cameraSelection->setCurrentIndex( -1 );
 	connect( cameraSelection , SIGNAL( activated( int ) ) , this , SLOT( selectedCamera( int ) ) );
 	connect( button , SIGNAL( clicked( bool ) ) , this , SLOT( run() ) );
 }
 
 void Setup::selectedCamera(int selection)
 {
-	resolutions.clear();
-	source->selectCamera( *cameras[selection], resolutions );
 	resolutionSelection->clear();
-	for ( unsigned int i = 0; i < resolutions.size(); ++i )
+	for ( unsigned int i = 0; i < cameras.at(selection).modes.size(); ++i )
 	{
-		resolutionSelection->addItem( QString::number( resolutions[i].caps.MaxOutputSize.cx ) + "x" + QString::number( resolutions[i].caps.MaxOutputSize.cy ) );
+		resolutionSelection->addItem( cameras.at(selection ).modes.at(i).name.c_str());
 	}
 }
 
 void Setup::run()
 {
 	if ( resolutionSelection->currentIndex() < 0 ) return;
-	source->selectResolution( resolutions[resolutionSelection->currentIndex()] );
-	source->initialize();
+	source->initialize( cameras.at( cameraSelection->currentIndex() ) , cameras.at( cameraSelection->currentIndex() ).modes.at(resolutionSelection->currentIndex()) );
 	War* war = new War;
 	war->setAttribute( Qt::WA_DeleteOnClose );
 	war->setCameraSource( source );

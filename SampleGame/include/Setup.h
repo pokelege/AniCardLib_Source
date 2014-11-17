@@ -2,14 +2,14 @@
 #include <Core\CommonWarningDisables.h>
 #include <QtGui\QWidget>
 #include <WebCamSource.h>
+#include <WebCamHelpers.h>
 class QComboBox;
 class Setup : public QWidget
 {
 	Q_OBJECT;
 
 	WebCamSource* source;
-	std::vector<IMoniker*> cameras;
-	std::vector<CameraConfigs> resolutions;
+	std::vector<CameraItem> cameras;
 	QComboBox* cameraSelection;
 	QComboBox* resolutionSelection;
 private slots:

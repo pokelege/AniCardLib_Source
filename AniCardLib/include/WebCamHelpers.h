@@ -17,5 +17,8 @@ struct CameraItem
 
 class ANICARDLIB_SHARED WebCamHelpers
 {
+public:
 	std::vector<CameraItem> getListOfCameras();
 };
+
+bool VIDEO_STREAM_CONFIG_CAPS_Equals( VIDEO_STREAM_CONFIG_CAPS& a , VIDEO_STREAM_CONFIG_CAPS& b );

@@ -230,7 +230,6 @@ void War::update()
 {
 	//std::cout << player1->active << std::endl;
 	//std::cout << MarkerPack::global.getMarker( 0 )->width << std::endl;
-	cameraSource->update();
 	WindowInfo::width = width();
 	WindowInfo::height = height();
 	Clock::update();

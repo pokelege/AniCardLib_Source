@@ -70,12 +70,31 @@ int WebCamSource::initialize( CameraItem& camera , CameraMode& mode )
 	IPin *cameraPin, *converterPin, *converterPin2 , *grabberPin,*grabberPin2 , *rendererPin;
 
 	IEnumPins* enumPins;
-	selectedCamera->EnumPins( &enumPins );
+	camera.camera->EnumPins( &enumPins );
 	while ( S_OK == enumPins->Next( 1 , &cameraPin , NULL ) )
 	{
 		PIN_DIRECTION pinDir;
 		cameraPin->QueryDirection( &pinDir );
 		if ( pinDir == PINDIR_OUTPUT ) break;
+	}
+	IAMStreamConfig* configuration;
+	cameraPin->QueryInterface( IID_IAMStreamConfig , ( void** ) &configuration );
+	int count , size;
+	configuration->GetNumberOfCapabilities( &count , &size );
+	if ( size == sizeof( VIDEO_STREAM_CONFIG_CAPS ) )
+	{
+		for ( int i = 0; i < count; ++i )
+		{
+			VIDEO_STREAM_CONFIG_CAPS con;
+			AM_MEDIA_TYPE* type;
+			if ( SUCCEEDED( configuration->GetStreamCaps( i, &type , ( BYTE* ) &con ) ) )
+			{
+				if ( VIDEO_STREAM_CONFIG_CAPS_Equals( con , mode.caps ))
+				{
+					configuration->SetFormat( type );
+				}
+			}
+		}
 	}
 
 	converter->EnumPins( &enumPins );
@@ -145,73 +164,25 @@ int WebCamSource::initialize( CameraItem& camera , CameraMode& mode )
 	sampleGrabber->Release();
 	graph->QueryInterface( IID_PPV_ARGS( &media ) );
 	media->Run();
-	IAMCameraControl* iKInterface = 0;
-	selectedCamera->QueryInterface( IID_IAMCameraControl , ( void** ) &iKInterface );
-
-	if ( iKInterface != 0 )
-	{
-		HRESULT a = iKInterface->Set( CameraControl_Exposure , 0 , CameraControl_Flags_Manual );
-		std::cout << _com_error(a).ErrorMessage() << std::endl;
-		//unsigned long numNodes = 0;
-		//iKInterface->get_NumNodes( &numNodes );
-		//for ( unsigned long i = 0; i < numNodes; ++i )
-		//{
-		//	GUID interfaceType;
-		//	iKInterface->get_NodeType( i , &interfaceType );
-		//	if ( interfaceType == KSNODETYPE_VIDEO_CAMERA_TERMINAL )
-		//	{
-		//		ICameraControl* findingFocalLength = 0;
-		//		iKInterface->CreateNodeInstance( i , __uuidof( ICameraControl ) , ( void** ) &findingFocalLength );
-		//		if ( findingFocalLength )
-		//		{
-		//			long focalLength = 0 , set , set2;
-		//			HRESULT lol = findingFocalLength->put_Exposure( 0 , 2 );
-		//			_com_error err( lol );
-		//			std::cout << err.ErrorMessage() << std::endl;
-		//		}
-		//	}
-		//}
-	}
 	return 0;
 }
 
-void WebCamSource::update()
+int WebCamSource::destroy()
 {
-	//IAMCameraControl* iKInterface = 0;
-	//selectedCamera->QueryInterface( IID_IAMCameraControl , ( void** ) &iKInterface );
-
-	//if ( iKInterface != 0 )
-	//{
-	//	iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Auto );
-	//	iKInterface->Set( KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY , 0 , CameraControl_Flags_Manual );
-	//	//iKInterface->Set( KSPROPERTY_CAMERACONTROL_ , 0 , CameraControl_Flags_Auto );
-	//	//std::cout << _com_error( a ).ErrorMessage() << std::endl;
-	//	//unsigned long numNodes = 0;
-	//	//iKInterface->get_NumNodes( &numNodes );
-	//	//for ( unsigned long i = 0; i < numNodes; ++i )
-	//	//{
-	//	//	GUID interfaceType;
-	//	//	iKInterface->get_NodeType( i , &interfaceType );
-	//	//	if ( interfaceType == KSNODETYPE_VIDEO_CAMERA_TERMINAL )
-	//	//	{
-	//	//		ICameraControl* findingFocalLength = 0;
-	//	//		iKInterface->CreateNodeInstance( i , __uuidof( ICameraControl ) , ( void** ) &findingFocalLength );
-	//	//		if ( findingFocalLength )
-	//	//		{
-	//	//			long focalLength = 0 , set , set2;
-	//	//			HRESULT lol = findingFocalLength->put_Exposure( 0 , 2 );
-	//	//			_com_error err( lol );
-	//	//			std::cout << err.ErrorMessage() << std::endl;
-	//	//		}
-	//	//	}
-	//	//}
-	//}
+	media->Stop();
+	if(fetcher) delete fetcher;
+	return S_OK;
 }
 
-HRESULT WebCamSource::destroy()
+bool VIDEO_STREAM_CONFIG_CAPS_Equals( VIDEO_STREAM_CONFIG_CAPS& a , VIDEO_STREAM_CONFIG_CAPS& b )
 {
-	if ( !selectedCamera ) return E_POINTER;
-	media->Stop();
-	delete fetcher;
-	return S_OK;
+	return (
+		a.guid == b.guid &&
+		a.MaxOutputSize.cx == b.MaxOutputSize.cx &&
+		a.MaxOutputSize.cy == b.MaxOutputSize.cy &&
+		a.VideoStandard == b.VideoStandard &&
+		a.InputSize.cx == b.InputSize.cx &&
+		a.InputSize.cx == b.InputSize.cx &&
+		a.MaxFrameInterval == b.MaxFrameInterval
+		);
 }
