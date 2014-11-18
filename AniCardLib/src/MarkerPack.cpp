@@ -8,7 +8,6 @@
 #include <Clock.h>
 #include <AniCardLibFileInfo.h>
 #include <Marker.h>
-MarkerPack MarkerPack::global;
 unsigned long MarkerPack::highestDissimilarity = ULONG_MAX;
 MarkerPack::MarkerPack() : debugPicture( 0 ) , cards( 0 )
 {

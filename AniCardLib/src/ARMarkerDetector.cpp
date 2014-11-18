@@ -11,8 +11,14 @@
 #include <MathHelpers.h>
 #include <MarkerPack.h>
 #include <Misc\ExtraFunctions.h>
-ARMarkerDetector ARMarkerDetector::global;
 using namespace AniCardLib;
+
+ARMarkerDetector::~ARMarkerDetector()
+{
+	while ( runningThread->wait_for( std::chrono::milliseconds( 0 ) ) != std::future_status::ready );
+	delete runningThread;
+	runningThread = 0;
+}
 
 bool ARMarkerDetector::getPicture( unsigned char** bytes , long* width , long* height )
 {

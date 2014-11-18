@@ -6,8 +6,6 @@
 #include "War.h"
 Setup::Setup()
 {
-	source = new WebCamSource;
-
 	WebCamHelpers helper;
 	cameras = helper.getListOfCameras();
 	cameraSelection = new QComboBox;
@@ -40,16 +38,13 @@ void Setup::selectedCamera(int selection)
 void Setup::run()
 {
 	if ( resolutionSelection->currentIndex() < 0 ) return;
-	source->initialize( cameras.at( cameraSelection->currentIndex() ) , cameras.at( cameraSelection->currentIndex() ).modes.at(resolutionSelection->currentIndex()) );
 	War* war = new War;
 	war->setAttribute( Qt::WA_DeleteOnClose );
-	war->setCameraSource( source );
+	war->setCameraSource( cameras.at( cameraSelection->currentIndex() ) , cameras.at( cameraSelection->currentIndex() ).modes.at( resolutionSelection->currentIndex() ) );
 	war->show();
-	source = 0;
 	close();
 }
 
 Setup::~Setup()
 {
-	if ( source ) delete source;
 }

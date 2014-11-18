@@ -93,13 +93,14 @@ STDMETHODIMP PictureFetcher::BufferCB( double SampleTime , BYTE *pBuffer , long 
 
 PictureFetcher::~PictureFetcher()
 {
-	numUsing = 0;
-	while ( !canGrab )
+	canGrab = false;
+	while ( numUsing )
 	{
-		numUsing = 0;
+		canGrab = false;
 	}
 	if ( picture )
 	{
 		delete[] picture;
+		picture = 0;
 	}
 }

@@ -25,20 +25,18 @@
 #include <Graphics\AnimationRenderingInfo.h>
 #include <Graphics\GraphicsTextureManager.h>
 #include <Audio\AudioController.h>
-#include <ARMarkerDetector.h>
-#include <MarkerPack.h>
 #include <DebugMemory.h>
-#include <Marker.h>
 #include <Input\FirstPersonCameraInput.h>
 #include <gtc\matrix_transform.hpp>
 #include <gtx\quaternion.hpp>
 #include <Misc\ExtraFunctions.h>
-War::War() :cameraSource(0) , animating(false) , lerp(0) , speed(1)
+War::War() : animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
 	maxFails = 100;
 	landMax = 1;
 	land = 0;
+	aniCardLib = new AniCardLibCommonGame;
 }
 War::~War()
 {
@@ -47,7 +45,7 @@ War::~War()
 	delete animation;
 	delete animation2;
 	delete timer;
-	delete cameraSource;
+	delete aniCardLib;
 	delete fpsInput;
 	AudioController::globalAudioController.destroy();
 }
@@ -172,10 +170,10 @@ void War::initializeGL()
 	player2->active = false;
 	player2->scale = glm::vec3( 0.1f , 0.1f , 0.1f );
 	
-	MarkerPack::global.load( "assets/cardPack.aclf" );
-	for ( unsigned int i = 0; i < MarkerPack::global.getGeometryListSize(); ++i )
+	aniCardLib->setMarkerPack( "assets/cardPack.aclf" );
+	for ( unsigned int i = 0; i < aniCardLib->getGeometryListSize(); ++i )
 	{
-		GeometryInfo* geoLoad = MarkerPack::global.getGeometry( i );
+		GeometryInfo* geoLoad = aniCardLib->getGeometry( i );
 		if ( !geoLoad ) continue;
 		geoLoad->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
 		geoLoad->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
@@ -233,7 +231,7 @@ void War::update()
 	WindowInfo::width = width();
 	WindowInfo::height = height();
 	Clock::update();
-
+	aniCardLib->update();
 	if ( !animating )
 	{
 		player->translate = plane->translate + glm::vec3( 0 , 2 , 2 );
@@ -340,42 +338,35 @@ void War::animationUpdate()
 
 bool War::findMarkers()
 {
-	if ( cameraSource )
-	{
-		ARMarkerDetector::global.findCard( cameraSource->fetcher , &MarkerPack::global );
-	}
-	std::vector<FoundMarkerInfo>* list = 0;
-	if ( ARMarkerDetector::global.getMarkerFound( &list ) )
-	{
-		if ( list && list->size() )
+	std::vector<FoundMarkerInfo> list = aniCardLib->queryResultList();
+		if ( list.size() )
 		{
 			player1Fails = 0;
-			glm::vec3 characterPos( ( list->at( 0 ).center.x * plane->scale.x ) , 0 , -( list->at( 0 ).center.y * plane->scale.z ) );
+			glm::vec3 characterPos( ( list.at( 0 ).center.x * plane->scale.x ) , 0 , -( list.at( 0 ).center.y * plane->scale.z ) );
 			player1->translate = characterPos;
-			renderable1->geometryInfo = MarkerPack::global.getCardGeometry( list->at( 0 ).cardIndex );
-			renderable1->swapTexture( MarkerPack::global.getCardTexture( list->at( 0 ).cardIndex ) , 0 );
+			renderable1->geometryInfo = aniCardLib->getCardGeometry( list.at( 0 ).cardIndex );
+			renderable1->swapTexture( aniCardLib->getCardTexture( list.at( 0 ).cardIndex ) , 0 );
 			player1OldPos = characterPos;
-			marker1 = list->at( 0 );
+			marker1 = list.at( 0 );
 			player1->active = true;
-			if ( list->size() < 2 )
+			if ( list.size() < 2 )
 			{
 				if ( player2->active && player2Fails < maxFails ) ++player2Fails;
 			}
 			else
 			{
-				for ( unsigned int i = 1; i < list->size(); ++i )
+				for ( unsigned int i = 1; i < list.size(); ++i )
 				{
-					glm::vec3 characterPos2( ( list->at( i ).center.x * plane->scale.x )  , 0 , -( list->at( i ).center.y * plane->scale.y ) );
+					glm::vec3 characterPos2( ( list.at( i ).center.x * plane->scale.x )  , 0 , -( list.at( i ).center.y * plane->scale.y ) );
 					if ( glm::length( characterPos - characterPos2 ) > 0.5f )
 					{
 						player2Fails = 0;
 						player2->translate = characterPos2;
-						renderable2->geometryInfo = MarkerPack::global.getCardGeometry( list->at( i ).cardIndex );
-						renderable2->swapTexture( MarkerPack::global.getCardTexture( list->at( i ).cardIndex ) , 0 );
+						renderable2->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
+						renderable2->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
 						player2OldPos = characterPos2;
-						marker2 = list->at( i );
+						marker2 = list.at( i );
 						player2->active = true;
-						list->clear();
 						break;
 					}
 				}
@@ -394,42 +385,37 @@ bool War::findMarkers()
 		{
 			player2->active = false;
 		}
-		ARMarkerDetector::global.finishedUsingMarkerFound();
-	}
 	return player1->active && player2->active;
 }
 
 
 void War::paintGL()
 {
-	if ( cameraSource )
+	if ( aniCardLib )
 	{
-		unsigned char* pictureData = 0;
 		long width;
 		long height;
-		if ( cameraSource->fetcher->getPicture(&pictureData, &width, &height) )
+		if ( aniCardLib->copyPicture(planeTexture, &width, &height) )
 		{
-			GraphicsTextureManager::globalTextureManager.editTexture( planeTexture , ( char* ) pictureData, width , height , 0 );
 			float toSize = std::min( (float)width , (float)height );
 			toSize = 1.0f / toSize;
 			//std::cout << toSize * width << std::endl;
 			plane->scale = glm::vec3( toSize * width , 1.0f , toSize * height );
-			cameraSource->fetcher->finishedUsing();
 		}
 	}
 
-	unsigned char* pictureData = 0;
-	long width;
-	long height;
-	if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
-	{
-		GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
-		ARMarkerDetector::global.finishedUsing();
-	}
+	//unsigned char* pictureData = 0;
+	//long width;
+	//long height;
+	//if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
+	//{
+	//	GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
+	//	ARMarkerDetector::global.finishedUsing();
+	//}
 
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
 }
-void War::setCameraSource(WebCamSource* webcam)
+void War::setCameraSource( CameraItem& camera , CameraMode& mode )
 {
-	cameraSource = webcam;
+	aniCardLib->setCamera( camera , mode );
 }

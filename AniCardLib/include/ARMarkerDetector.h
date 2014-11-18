@@ -71,18 +71,19 @@ class ANICARDLIB_SHARED ARMarkerDetector
 	bool canGrabMarkerFound;
 	unsigned int numUsingMarkerFound;
 	std::vector<FoundMarkerInfo> toSend;
-	ARMarkerDetector() : copiedPictureInstance( 0 ) , grayscaleImage( 0 ) , gradientIntensity( 0 ) , runningThread( 0 ) , gradientDirection( 0 ) , width( 0 ) , height( 0 ) , canGrab( false ) , numUsing( 0 ) , canGrabMarkerFound( false ) , numUsingMarkerFound( 0 ) {}
+
 	void findLines(std::vector<Line>& linesToAdd );
 	std::vector<Line> findLinesOnRegion(long x , long y , long width , long height);
 	void _findCard( MarkerPack* markerPack );
 	bool findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index );
 public:
+	ARMarkerDetector() : copiedPictureInstance( 0 ) , grayscaleImage( 0 ) , gradientIntensity( 0 ) , runningThread( 0 ) , gradientDirection( 0 ) , width( 0 ) , height( 0 ) , canGrab( false ) , numUsing( 0 ) , canGrabMarkerFound( false ) , numUsingMarkerFound( 0 ) {}
+	~ARMarkerDetector();
 	void findCard( PictureFetcher* picture, MarkerPack* markerPack );
 	bool getPicture( unsigned char** bytes , long* width = 0 , long* height = 0 );
 	bool finishedUsing();
 	bool getMarkerFound( std::vector<FoundMarkerInfo>** bytes );
 	bool finishedUsingMarkerFound();
-	static ARMarkerDetector global;
 };
 
 bool dissimilarityCompare( FoundMarkerInfo& i , FoundMarkerInfo& j );

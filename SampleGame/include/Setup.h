@@ -8,7 +8,6 @@ class Setup : public QWidget
 {
 	Q_OBJECT;
 
-	WebCamSource* source;
 	std::vector<CameraItem> cameras;
 	QComboBox* cameraSelection;
 	QComboBox* resolutionSelection;

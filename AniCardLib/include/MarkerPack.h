@@ -55,5 +55,4 @@ public:
 	bool matchMarker( Quad& quad, const unsigned char* picture, long pictureWidth, long pictureHeight );
 	bool getPicture( unsigned char** bytes , long* width = 0 , long* height = 0 );
 	bool finishedUsing();
-	static MarkerPack global;
 };

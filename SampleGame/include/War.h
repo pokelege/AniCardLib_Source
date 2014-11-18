@@ -3,7 +3,8 @@
 #pragma warning(disable:4201)
 #include <QtOpenGL\QGLWidget>
 #include <glm.hpp>
-#include <ARMarkerDetector.h>
+#include <AniCardLibCommonGame.h>
+
 class WebCamSource;
 struct TextureInfo;
 class GameObject;
@@ -17,7 +18,6 @@ class War : public QGLWidget
 {
 	Q_OBJECT;
 	FirstPersonCameraInput* fpsInput;
-	WebCamSource* cameraSource;
 	TextureInfo* planeTexture, *planeDebugTexture;
 	GameObject* plane , *player;
 	Camera* camera;
@@ -28,6 +28,7 @@ class War : public QGLWidget
 	FoundMarkerInfo marker1 , marker2;
 	glm::vec3 player1OldPos , player2OldPos;
 	AnimationState aniState;
+	AniCardLibCommonGame* aniCardLib;
 	float landMax;
 	float land;
 	float lerp;
@@ -46,7 +47,7 @@ public:
 	~War();
 	void initializeGL();
 	void paintGL();
-	void setCameraSource( WebCamSource* cameraSource );
+	void setCameraSource( CameraItem& camera , CameraMode& mode );
 public slots:
 	void update();
 };
