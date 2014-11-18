@@ -1,6 +1,6 @@
 #pragma once
 #include <QtGui\QWidget>
-#include <AniCardLibFileInfo.h>
+#include <AniCardLibCommonEditor.h>
 #include <Preview.h>
 class QListWidget;
 class Editor : public QWidget
@@ -8,7 +8,7 @@ class Editor : public QWidget
 	Q_OBJECT;
 
 	QListWidget* arCardsList , *modelsList , *texturesList;
-	AniCardLibFileInfo* file;
+	AniCardLibCommonEditor* editor;
 	Preview preview;
 private slots:
 void initialize();

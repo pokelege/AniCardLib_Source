@@ -54,6 +54,8 @@ struct ANICARDLIB_SHARED FoundMarkerInfo
 	glm::vec2 center;
 	unsigned long dissimilarity;
 	unsigned int cardIndex;
+	bool used;
+	FoundMarkerInfo() : used(false) {}
 };
 class MarkerPack;
 class ANICARDLIB_SHARED ARMarkerDetector

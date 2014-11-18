@@ -47,7 +47,7 @@ Editor::Editor()
 
 	setLayout( masterLayout );
 
-	file = 0;
+	editor = 0;
 
 	connect( addCardButton , SIGNAL( clicked() ) , this , SLOT( addCard() ) );
 	connect( addModelButton , SIGNAL( clicked() ) , this , SLOT( addModel() ) );
@@ -63,16 +63,16 @@ Editor::Editor()
 }
 void Editor::initialize()
 {
-	file = new AniCardLibFileInfo();
+	editor = new AniCardLibCommonEditor();
 }
 
 void Editor::selectCard( int selected )
 {
 	if ( selected < 0 ) return;
-	Marker* marker = file->getMarker( selected );
+	Marker* marker = editor->getMarker( selected );
 	if ( marker )
 	{
-		preview.setCard( file->getPicturePointer( selected ) , marker->width , marker->height, file->getCardGeometry(selected), file->getCardTexture(selected));
+		preview.setCard( editor->getPicturePointer( selected ) , marker->width , marker->height, editor->getCardGeometry(selected), editor->getCardTexture(selected));
 	}
 }
 
@@ -81,7 +81,7 @@ void Editor::addCard()
 	QFileDialog dialogbox;
 	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Card" , QCoreApplication::applicationDirPath() , "*.png" ) );
 	if ( !fileName.isFile() ) return;
-	int cardIndex = file->addMarker( fileName.absoluteFilePath().toUtf8()) ;
+	int cardIndex = editor->addMarker( fileName.absoluteFilePath().toUtf8()) ;
 	if ( cardIndex >= 0 )
 	{
 		arCardsList->addItem( fileName.baseName());
@@ -92,7 +92,7 @@ void Editor::addModel()
 	QFileDialog dialogbox;
 	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Model", QCoreApplication::applicationDirPath(), "*.pmd" ) );
 	if ( !fileName.isFile() ) return;
-	int modelIndex = file->addModel( fileName.absoluteFilePath().toUtf8() );
+	int modelIndex = editor->addModel( fileName.absoluteFilePath().toUtf8() );
 	if ( modelIndex >= 0 )
 	{
 		modelsList->addItem( fileName.baseName() );
@@ -101,7 +101,7 @@ void Editor::addModel()
 void Editor::linkModel()
 {
 	if ( modelsList->currentRow() < 0 ) return;
-	Marker* marker = file->getMarker( arCardsList->currentRow() );
+	Marker* marker = editor->getMarker( arCardsList->currentRow() );
 	if ( marker)
 	{
 		marker->linkedModel = modelsList->currentRow();
@@ -112,7 +112,7 @@ void Editor::addTexture()
 	QFileDialog dialogbox;
 	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Texture" , QCoreApplication::applicationDirPath() , "*.tex" ) );
 	if ( !fileName.isFile() ) return;
-	int textureIndex = file->addTexture( fileName.absoluteFilePath().toUtf8() );
+	int textureIndex = editor->addTexture( fileName.absoluteFilePath().toUtf8() );
 	if ( textureIndex >= 0 )
 	{
 		texturesList->addItem( fileName.baseName() );
@@ -121,7 +121,7 @@ void Editor::addTexture()
 void Editor::linkTexture()
 {
 	if ( texturesList->currentRow() < 0 ) return;
-	Marker* marker = file->getMarker( arCardsList->currentRow() );
+	Marker* marker = editor->getMarker( arCardsList->currentRow() );
 	if ( marker )
 	{
 		marker->linkedTexture = texturesList->currentRow();
@@ -132,28 +132,29 @@ void Editor::save()
 	QFileDialog dialogbox;
 	QString fileName = dialogbox.getSaveFileName( NULL , "Save File" , QCoreApplication::applicationDirPath() , "*.aclf" ).toUtf8();
 	if ( fileName.isEmpty() ) return;
-	file->save( fileName.toUtf8() );
+	editor->save( fileName.toUtf8() );
 }
 void Editor::load()
 {
 	QFileDialog dialogbox;
 	QString fileName = dialogbox.getOpenFileName( NULL , "Load File" , QCoreApplication::applicationDirPath() , "*.aclf" ).toUtf8();
 	if ( fileName.isEmpty() ) return;
-	delete file;
-	file = new AniCardLibFileInfo(fileName.toUtf8());
+	delete editor;
+	editor = new AniCardLibCommonEditor;
+	editor->load( fileName.toUtf8() );
 	arCardsList->clear();
-	for ( unsigned int i = 0; i < file->getMarkerListSize(); ++i )
+	for ( unsigned int i = 0; i < editor->getMarkerListSize(); ++i )
 	{
 		arCardsList->addItem( QString::number( i ) );
 	}
 	modelsList->clear();
-	for ( unsigned int i = 0; i < file->getGeometryListSize(); ++i )
+	for ( unsigned int i = 0; i < editor->getGeometryListSize(); ++i )
 	{
 		modelsList->addItem( QString::number( i ) );
 	}
 
 	texturesList->clear();
-	for ( unsigned int i = 0; i < file->getTextureListSize(); ++i )
+	for ( unsigned int i = 0; i < editor->getTextureListSize(); ++i )
 	{
 		texturesList->addItem( QString::number( i ) );
 	}
@@ -162,5 +163,5 @@ void Editor::load()
 
 Editor::~Editor()
 {
-	delete file;
+	delete editor;
 }

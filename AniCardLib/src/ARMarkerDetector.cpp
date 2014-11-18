@@ -207,7 +207,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		}
 	}
 	findLines( theLines );
-	float angleThreshold = 5;
+	float angleThreshold = 10;
 	float upperThreshold = 100.0f;
 	//std::cout << "before " << theLines.size() <<std::endl;
 	for ( unsigned int i = 0; i < theLines.size(); ++i )
@@ -541,18 +541,18 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			//quadResult.pt[3] = quad.line[3]->start;
 			//AniCardLib::Clock c;
 			//c.Start();
-			float angleError = 0;
-			for ( unsigned int i = 0; i < 4 && angleError <= angleThreshold; ++i )
+			//float angleError = 0;
+			//for ( unsigned int i = 0; i < 4 && angleError <= angleThreshold; ++i )
+			//{
+			//	glm::vec2 line1 = glm::normalize( quadResult.pt[( i + 1 ) % 4] - quadResult.pt[i] );
+			//	glm::vec2 line2 = glm::normalize( quadResult.pt[( i + 2 ) % 4] - quadResult.pt[( i + 1 ) % 4] );
+			//	float cos = glm::dot( line1 , line2 );
+			//	float angle = abs(glm::degrees(glm::acos( cos )));
+			//	angleError += abs(differenceBetweenAngles( angle , 90.0f ));
+			//}
+			if (  markerPack->matchMarker( quadResult , grayscaleImage , width , height ) )
 			{
-				glm::vec2 line1 = glm::normalize( quadResult.pt[( i + 1 ) % 4] - quadResult.pt[i] );
-				glm::vec2 line2 = glm::normalize( quadResult.pt[( i + 2 ) % 4] - quadResult.pt[( i + 1 ) % 4] );
-				float cos = glm::dot( line1 , line2 );
-				float angle = abs(glm::degrees(glm::acos( cos )));
-				angleError += abs(differenceBetweenAngles( angle , 90.0f ));
-			}
-			if ( angleError <= angleThreshold && markerPack->matchMarker( quadResult , grayscaleImage , width , height ) )
-			{
-				quadResult.angleError = angleError;
+				//quadResult.angleError = angleError;
 				quadResults.push_back( quadResult );
 				//debug
 				//{
@@ -725,7 +725,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		found.dissimilarity = quadResults[i].dissimilarity;
 		toSend.push_back( found );
 	}
-	//std::sort( toSend.begin() , toSend.end() , dissimilarityCompare );
+	std::sort( toSend.begin() , toSend.end() , dissimilarityCompare );
 	canGrabMarkerFound = true;
 
 	//std::cout << "num lines " << theLines.size() << std::endl;

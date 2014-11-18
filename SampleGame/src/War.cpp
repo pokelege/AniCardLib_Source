@@ -189,7 +189,8 @@ void War::initializeGL()
 	c.setShape( Qt::BlankCursor );
 	setCursor( c );
 	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( width() / 2 , height() / 2 ) );
-
+	marker1.used = true;
+	marker2.used = true;
 	AudioController::globalAudioController.initialize();
 	AudioController::globalAudioController.playSound( "assets/audio/music.mp3" , true );
 	timer = new QTimer();
@@ -332,6 +333,9 @@ void War::animationUpdate()
 			player2->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , ( worldCenterPos - glm::vec3( 0 , 1 , 0 ) ) - player2->translate , 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
 			//player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player1OldPos , worldCenterPos - glm::vec3( 0 , 1 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
 			//player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player2OldPos , worldCenterPos - glm::vec3(0,1,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
+
+			marker1.used = true;
+			marker2.used = true;
 			break;
 	}
 }
@@ -339,15 +343,29 @@ void War::animationUpdate()
 bool War::findMarkers()
 {
 	std::vector<FoundMarkerInfo> list = aniCardLib->queryResultList();
+
+	for ( unsigned int i = 0; i < list.size(); ++i )
+	{
+		if ( marker1.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
+		{
+			marker1 = list.at( i );
+		}
+		else if ( marker2.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
+		{
+			marker2 = list.at( i );
+		}
+	}
+
 		if ( list.size() )
 		{
+
+			marker1 = list.at( 0 );
 			player1Fails = 0;
 			glm::vec3 characterPos( ( list.at( 0 ).center.x * plane->scale.x ) , 0 , -( list.at( 0 ).center.y * plane->scale.z ) );
 			player1->translate = characterPos;
 			renderable1->geometryInfo = aniCardLib->getCardGeometry( list.at( 0 ).cardIndex );
 			renderable1->swapTexture( aniCardLib->getCardTexture( list.at( 0 ).cardIndex ) , 0 );
 			player1OldPos = characterPos;
-			marker1 = list.at( 0 );
 			player1->active = true;
 			if ( list.size() < 2 )
 			{
