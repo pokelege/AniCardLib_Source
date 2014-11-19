@@ -88,4 +88,4 @@ public:
 	bool finishedUsingMarkerFound();
 };
 
-bool dissimilarityCompare( FoundMarkerInfo& i , FoundMarkerInfo& j );
+bool dissimilarityCompare( Quad& i , Quad& j );

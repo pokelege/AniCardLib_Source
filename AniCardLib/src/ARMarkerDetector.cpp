@@ -696,11 +696,72 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 				if ( start < 0 ) cleaned = true;
 				else if ( end < 0 ) theLines.erase( theLines.begin() + start , theLines.end() );
 				else if ( start == end ) theLines.erase( theLines.begin() + start );
-				else theLines.erase( theLines.begin() + start , theLines.begin() + end );
+				else theLines.erase( theLines.begin() + start , theLines.begin() + end + 1 );
 			}
 		}
 	}
 
+	std::sort( quadResults.begin() , quadResults.end() , dissimilarityCompare );
+	//std::cout << "quad before " << quadResults.size() << std::endl;
+	for ( unsigned int i = 0; i < quadResults.size(); ++i )
+	{
+
+		float area = 0.5f * glm::length( quadResults.at( i ).pt[2] - quadResults.at( i ).pt[0] ) * glm::length( quadResults.at( i ).pt[3] - quadResults.at( i ).pt[1] );
+
+
+		int start = -1 , end = -1;
+		for ( unsigned int j = quadResults.size() - 1; j >= i && ( start < 0 || end < 0 ); --j )
+		{
+			float totalArea = FLT_MAX;
+			if ( quadResults.at( i ).markerID == quadResults.at( j ).markerID && i != j )
+			{
+				totalArea = 0;
+			}
+			else if ( i == j ) totalArea = FLT_MAX;
+			else
+			{
+				totalArea = 0;
+				glm::vec2 center;
+				for ( unsigned int k = 0; k < 4; ++k )
+				{
+					center += quadResults[j].pt[k];
+				}
+				center *= 0.25f;
+
+
+				for ( unsigned int k = 0; k < 4; ++k )
+				{
+					glm::vec2 point1 = quadResults.at( i ).pt[k % 4];
+					glm::vec2 point2 = quadResults.at( i ).pt[( k + 1 ) % 4];
+
+					glm::vec2 normal = glm::normalize( point2 - point1 );
+					glm::vec2 centerOnPoint1 = center - point1;
+
+					float dot = glm::dot( centerOnPoint1 , normal );
+					glm::vec2 perp = ( dot * normal ) + point1;
+					totalArea += 0.5f * glm::length( point2 - point1 ) * glm::length( center - perp );
+					if ( totalArea > area ) break;
+				}
+				//std::cout << totalArea << ", " << area << std::endl;
+			}
+			if ( totalArea <= area && end < 0 ) end = j;
+			else if ( end >= 0 && totalArea > area )
+			{
+				start = j + 1;
+			}
+		}
+		//std::cout << start << ", " << end << ", " << i << std::endl;
+		if ( end < 0 ) continue;
+		else if ( start < 0 && (int)i + 1 == end ) quadResults.erase( quadResults.begin() + end );
+		else if ( start < 0 && ( int ) i + 1 < end ) quadResults.erase( quadResults.begin() + i + 1 , quadResults.begin() + end + 1 );
+		else if(start >= 0 && end >= 0) quadResults.erase( quadResults.begin() + start , quadResults.begin() + end + 1 );
+
+		//if ( start < 0 ) cleaned = true;
+		//else if ( end < 0 ) edgels.erase( edgels.begin() + start , edgels.end() );
+		//else if ( start == end || ( end < 0 && edgels.begin() + start == edgels.end() ) ) edgels.erase( edgels.begin() + start );
+		//else edgels.erase( edgels.begin() + start , edgels.begin() + end );
+	}
+	//std::cout << "quad after " << quadResults.size() << std::endl;
 	canGrabMarkerFound = false;
 	while ( numUsingMarkerFound ) std::cout << numUsingMarkerFound << std::endl;
 	toSend.clear();
@@ -725,7 +786,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		found.dissimilarity = quadResults[i].dissimilarity;
 		toSend.push_back( found );
 	}
-	std::sort( toSend.begin() , toSend.end() , dissimilarityCompare );
+
 	canGrabMarkerFound = true;
 
 	//std::cout << "num lines " << theLines.size() << std::endl;
@@ -1171,11 +1232,10 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 					break;
 				}
 			}
-			if ( start < 0 )
-			cleaned = true;
+			if ( start < 0 ) cleaned = true;
 			else if ( end < 0 ) edgels.erase( edgels.begin() + start , edgels.end() );
-			else if ( start == end || (end < 0 && edgels.begin() + start == edgels.end()) ) edgels.erase( edgels.begin() + start );
-			else edgels.erase( edgels.begin() + start , edgels.begin() + end );
+			else if ( start == end || (end < 0 && edgels.begin() + start + 1 == edgels.end()) ) edgels.erase( edgels.begin() + start );
+			else edgels.erase( edgels.begin() + start , edgels.begin() + end + 1 );
 		}
 		tempLines.push_back( line );
 		//std::cout << glm::length( glm::vec2( line.start ) - glm::vec2( line.end ) ) << std::endl;
@@ -1327,4 +1387,4 @@ std::vector<Line> ARMarkerDetector::findLinesOnRegion( long x , long y , long wi
 	return tempLines;
 }
 
-bool dissimilarityCompare( FoundMarkerInfo& i , FoundMarkerInfo& j ) { return ( i.dissimilarity < j.dissimilarity ); }
+bool dissimilarityCompare( Quad& i , Quad& j ) { return ( i.dissimilarity < j.dissimilarity ); }
