@@ -504,7 +504,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 	//}
 
 	std::vector<Quad> quadResults;
-
+	//c.Start();
 	bool constructing = true;
 	while ( constructing && theLines.size() >=4 )
 	{
@@ -550,6 +550,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			//	float angle = abs(glm::degrees(glm::acos( cos )));
 			//	angleError += abs(differenceBetweenAngles( angle , 90.0f ));
 			//}
+			//c.Start();
 			if (  markerPack->matchMarker( quadResult , grayscaleImage , width , height ) )
 			{
 				//quadResult.angleError = angleError;
@@ -600,6 +601,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 				//	canGrab = true;
 				//}
 			}
+
 			//std::cout << c.Stop() << std::endl;
 			//float* vectorMult = new float[8];
 			//vectorMult[0] = ( float ) ( quadResult.pt[0].x - 618.776f ) / 893.48f;
@@ -700,7 +702,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			}
 		}
 	}
-
+	//std::cout << "full algoTime " << c.Stop() << std::endl;
 	std::sort( quadResults.begin() , quadResults.end() , dissimilarityCompare );
 	//std::cout << "quad before " << quadResults.size() << std::endl;
 	for ( unsigned int i = 0; i < quadResults.size(); ++i )

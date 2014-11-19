@@ -335,7 +335,6 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 				}
 			}
 		}
-
 		float determinant = MathHelpers::Determinant( matrix , 8 );
 		if ( determinant != 0 )
 		{
@@ -348,11 +347,10 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 			theAs[i] = new float[8];
 			memcpy( theAs[i] , vectorMult , sizeof( float ) * 8 );
 		}
-
 		delete[] matrix;
 		delete[] vectorMult;
 	}
-
+	
 	unsigned char minimum = UCHAR_MAX , maximum = 0;
 	for ( unsigned long y = 0; y < markerHeight; ++y )
 	{
@@ -369,6 +367,8 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		}
 	}
 	threshold = ( minimum + maximum ) / 2;
+	AniCardLib::Clock c;
+	c.Start();
 	std::vector < std::future<FoundMarkerInfo>> closestMarkerCorners;
 	for ( unsigned int i = 0; i < cards->getMarkerListSize(); ++i )
 	{
@@ -383,7 +383,6 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		compareInfo.pos[3] = info.pos[3];
 		closestMarkerCorners.push_back( std::async( std::launch::async , &MarkerPack::getMarkerDissimilarity , this , compareInfo ) );
 	}
-
 	unsigned int closest = 0;
 	unsigned long smallestDissimilarity = ULONG_MAX;
 	//AniCardLib::Clock c;
@@ -398,8 +397,10 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
 		//std::cout << "dissimilarity " << i << " " << theResult.dissimilarity << std::endl;
 	}
+	std::cout << c.Stop() << std::endl;
 	//std::cout << "dissimilarity closest " << foundInfos[closest].dissimilarity << std::endl;
 	//std::cin.get();
 	//std::cout << "top " << c.Stop() << std::endl;
+	
 	return foundInfos[closest];
 }
