@@ -190,7 +190,9 @@ void War::initializeGL()
 	setCursor( c );
 	MouseInput::globalMouseInput.updateMousePosition( glm::vec2( width() / 2 , height() / 2 ) );
 	marker1.used = true;
+	marker1.cardIndex = UINT_MAX;
 	marker2.used = true;
+	marker2.cardIndex = UINT_MAX;
 	AudioController::globalAudioController.initialize();
 	AudioController::globalAudioController.playSound( "assets/audio/music.mp3" , true );
 	timer = new QTimer();
@@ -396,11 +398,11 @@ bool War::findMarkers()
 		player2->active = true;
 	}
 	else ++player2Fails;
-	if ( player1->active && player1Fails >= maxFails )
+	if (player1Fails >= maxFails )
 	{
 		player1->active = false;
 	}
-	if ( player2->active && player2Fails >= maxFails )
+	if (player2Fails >= maxFails )
 	{
 		player2->active = false;
 	}
@@ -442,7 +444,7 @@ bool War::findMarkers()
 		//{
 		//	if ( player1->active && player1Fails < maxFails ) ++player1Fails;
 		//	if ( player2->active && player2Fails < maxFails ) ++player2Fails;
-	return player1->active && player2->active;
+	return player1OK && player2OK;
 }
 
 

@@ -8,7 +8,7 @@
 #include <Clock.h>
 #include <AniCardLibFileInfo.h>
 #include <Marker.h>
-unsigned long MarkerPack::highestDissimilarity = ULONG_MAX;
+unsigned long MarkerPack::lowestDissimilarity = ULONG_MAX;
 MarkerPack::MarkerPack() : debugPicture( 0 ) , cards( 0 )
 {
 	cards = new AniCardLibFileInfo;
@@ -117,7 +117,7 @@ bool MarkerPack::matchMarker( Quad& quad , const unsigned char* picture , long p
 	quadInfo.pos[3] = quad.pt[3];
 
 	FoundMarkerInfo resultantMarker = getSmallestDissimilarity( quadInfo );
-	if ( resultantMarker.dissimilarity > highestDissimilarity ) toReturn = false;
+	if ( resultantMarker.dissimilarity > lowestDissimilarity ) toReturn = false;
 
 //canGrab = false;
 //	while ( numUsing ) std::cout << "using at markerpack" << std::endl;
@@ -217,7 +217,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				int toAdd = ((int)picturePixel) - ((int)result);
 				//if(toAdd < 0) std::cout << picturePixel << " - " << result << " = " << toAdd << std::endl;
 				difference += (unsigned long)(toAdd * toAdd);
-				if ( difference > highestDissimilarity )
+				if ( difference > lowestDissimilarity )
 				{
 					difference = ULONG_MAX;
 					break;
@@ -233,7 +233,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 				//unsigned long toAdd = picturePixel - markers[info.marker].bytes[( y * markers[info.marker].width ) + x];
 				//difference += toAdd * toAdd;
 			}
-			if ( difference > highestDissimilarity )
+			if ( difference > lowestDissimilarity )
 			{
 				difference = ULONG_MAX;
 				break;
@@ -241,6 +241,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 		}
 		//std::cout << "calctimepic " << c.Stop() << std::endl;
 		markerFoundInfo.dissimilarity = difference;
+		lowestDissimilarity = min( lowestDissimilarity , difference );
 		//std::cout << "dissimilarity " << difference << std::endl;
 		
 	}
@@ -366,9 +367,11 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 			maximum = max( sample , maximum );
 		}
 	}
-	threshold = ( minimum + maximum ) / 2;
-	AniCardLib::Clock c;
-	c.Start();
+	if ( minimum > maximum ) minimum = maximum;
+	threshold = (( maximum - minimum ) / 2) + minimum;
+	lowestDissimilarity = ULONG_MAX;
+	//AniCardLib::Clock c;
+	//c.Start();
 	std::vector < std::future<FoundMarkerInfo>> closestMarkerCorners;
 	for ( unsigned int i = 0; i < cards->getMarkerListSize(); ++i )
 	{
@@ -397,7 +400,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
 		//std::cout << "dissimilarity " << i << " " << theResult.dissimilarity << std::endl;
 	}
-	std::cout << c.Stop() << std::endl;
+	//std::cout << c.Stop() << std::endl;
 	//std::cout << "dissimilarity closest " << foundInfos[closest].dissimilarity << std::endl;
 	//std::cin.get();
 	//std::cout << "top " << c.Stop() << std::endl;
