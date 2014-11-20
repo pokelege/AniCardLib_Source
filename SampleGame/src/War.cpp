@@ -30,6 +30,8 @@
 #include <gtc\matrix_transform.hpp>
 #include <gtx\quaternion.hpp>
 #include <Misc\ExtraFunctions.h>
+#include <Graphics\Light.h>
+#include <Graphics\GraphicsLightManager.h>
 War::War() : animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
@@ -73,6 +75,7 @@ void War::initializeGL()
 
 	GeometryInfo* geometry = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/TableTop.pmd" , GraphicsBufferManager::globalBufferManager );
 	geometry->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	geometry->addShaderStreamedParameter( 2 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::NORMAL_OFFSET );
 	geometry->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	geometry->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 	geometry->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
@@ -92,6 +95,7 @@ void War::initializeGL()
 	plane->addComponent( renderable );
 	GeometryInfo* tableGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/TableBody.pmd",GraphicsBufferManager::globalBufferManager );
 	tableGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	tableGeo->addShaderStreamedParameter( 2 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::NORMAL_OFFSET );
 	tableGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	tableGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 	tableGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
@@ -110,6 +114,7 @@ void War::initializeGL()
 
 	GeometryInfo* sceneGeo = GraphicsGeometryManager::globalGeometryManager.addPMDGeometry( "assets/models/Scene.pmd" , GraphicsBufferManager::globalBufferManager );
 	sceneGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+	sceneGeo->addShaderStreamedParameter( 2 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::NORMAL_OFFSET );
 	sceneGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 	sceneGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 	sceneGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
@@ -176,11 +181,17 @@ void War::initializeGL()
 		GeometryInfo* geoLoad = aniCardLib->getGeometry( i );
 		if ( !geoLoad ) continue;
 		geoLoad->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+		geoLoad->addShaderStreamedParameter( 2 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::NORMAL_OFFSET );
 		geoLoad->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 		geoLoad->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 		geoLoad->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 	}
 
+	GameObject* lightBulb = GameObjectManager::globalGameObjectManager.addGameObject();
+	Light* light = GraphicsLightManager::global.addLight();
+	light->setColor( glm::vec4( 1 , 1 , 1 , 1 ));
+	lightBulb->addComponent( light );
+	lightBulb->translate = glm::vec3( 0 , 5 , 5 );
 	MouseInput::globalMouseInput.updateOldMousePosition = false;
 
 	setMouseTracking( true );
@@ -487,7 +498,7 @@ void War::paintGL()
 	//	GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
 	//	ARMarkerDetector::global.finishedUsing();
 	//}
-
+	GraphicsSharedUniformManager::globalSharedUniformManager.updateLights();
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
 }
 void War::setCameraSource( CameraItem& camera , CameraMode& mode )
