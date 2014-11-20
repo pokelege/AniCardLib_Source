@@ -240,7 +240,8 @@ void War::update()
 		player->translate = plane->translate + glm::vec3( 0 , 2 , 2 );
 		camera->direction = glm::normalize( plane->translate - player->translate );
 	}
-	if ( !animating && findMarkers() )
+	bool animate = findMarkers();
+	if ( !animating && animate )
 	{
 		animating = true;
 	}
@@ -325,6 +326,8 @@ void War::animationUpdate()
 				animation2->play( 0 );
 				player1->active = false;
 				player2->active = false;
+				marker1.used = true;
+				marker2.used = true;
 			}
 			break;
 		default:
@@ -335,9 +338,6 @@ void War::animationUpdate()
 			player2->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , ( worldCenterPos - glm::vec3( 0 , 1 , 0 ) ) - player2->translate , 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
 			//player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player1OldPos , worldCenterPos - glm::vec3( 0 , 1 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
 			//player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player2OldPos , worldCenterPos - glm::vec3(0,1,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
-
-			marker1.used = true;
-			marker2.used = true;
 			break;
 	}
 }
@@ -348,63 +348,79 @@ bool War::findMarkers()
 	bool player1OK = false, player2OK = false;
 	for ( unsigned int i = 0; i < list.size(); ++i )
 	{
-		if ( marker1.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
+		if ( !animating )
 		{
-			player1OK = true;
-			marker1 = list.at( i );
-			glm::vec3 characterPos( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
-			player1->translate = characterPos;
-			renderable1->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
-			renderable1->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
-			player1OldPos = characterPos;
-		}
-		else if ( marker2.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
-		{
-			player2OK = true;
-			marker2 = list.at( i );
-			glm::vec3 characterPos2( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
-			player2->translate = characterPos2;
-			renderable2->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
-			renderable2->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
-			player2OldPos = characterPos2;
+			if ( marker1.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
+			{
+				player1OK = true;
+				player1->active = true;
+				marker1 = list.at( i );
+				glm::vec3 characterPos( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
+				player1->translate = characterPos;
+				renderable1->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
+				renderable1->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
+				player1OldPos = characterPos;
+			}
+			else if ( marker2.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
+			{
+				player2OK = true;
+				player2->active = true;
+				marker2 = list.at( i );
+				glm::vec3 characterPos2( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
+				player2->translate = characterPos2;
+				renderable2->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
+				renderable2->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
+				player2OldPos = characterPos2;
+			}
 		}
 
 		if ( !marker1.used && marker1.cardIndex == list.at( i ).cardIndex )
 		{
 			player1OK = true;
+			player1->active = true;
 			glm::vec3 characterPos( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
 			player1->translate = characterPos;
 			player1OldPos = characterPos;
 		}
+		else if ( marker1.used && marker1.cardIndex == list.at( i ).cardIndex ) player1OK = true;
 		else if ( !marker2.used && marker2.cardIndex == list.at( i ).cardIndex )
 		{
 			player2OK = true;
+			player2->active = true;
 			glm::vec3 characterPos2( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
 			player2->translate = characterPos2;
 			player2OldPos = characterPos2;
 		}
+		else if ( marker2.used && marker2.cardIndex == list.at( i ).cardIndex ) player2OK = true;
 		if ( player1OK && player2OK ) break;
 	}
 
 	if ( player1OK )
 	{
 		player1Fails = 0;
-		player1->active = true;
+		
 	}
 	else ++player1Fails;
 	if ( player2OK )
 	{
 		player2Fails = 0;
-		player2->active = true;
+		
 	}
 	else ++player2Fails;
-	if (player1Fails >= maxFails )
+	if ( !animating )
 	{
-		player1->active = false;
-	}
-	if (player2Fails >= maxFails )
-	{
-		player2->active = false;
+		if ( player1Fails >= maxFails )
+		{
+			player1->active = false;
+			marker1.used = true;
+			marker1.cardIndex = UINT_MAX;
+		}
+		if ( player2Fails >= maxFails )
+		{
+			player2->active = false;
+			marker2.used = true;
+			marker2.cardIndex = UINT_MAX;
+		}
 	}
 		//if ( list.size() )
 		//{
@@ -444,7 +460,7 @@ bool War::findMarkers()
 		//{
 		//	if ( player1->active && player1Fails < maxFails ) ++player1Fails;
 		//	if ( player2->active && player2Fails < maxFails ) ++player2Fails;
-	return player1OK && player2OK;
+	return (player1OK && player1->active) && (player2OK && player2->active);
 }
 
 

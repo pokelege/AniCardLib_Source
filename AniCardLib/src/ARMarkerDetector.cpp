@@ -799,7 +799,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 
 bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line>& lines , unsigned int index )
 {
-	float angleThreshold = 5;
+	float angleThreshold = 10;
 	float threshold = ((float)(width + height) / 2.0f) * 0.015f;
 	//if ( quadToEdit.angleError > angleThreshold ) return false;
 	//std::cout << threshold << std::endl;
