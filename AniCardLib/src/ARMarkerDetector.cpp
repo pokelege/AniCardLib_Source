@@ -11,6 +11,8 @@
 #include <MathHelpers.h>
 #include <MarkerPack.h>
 #include <Misc\ExtraFunctions.h>
+#include <thread>
+#include <queue>
 using namespace AniCardLib;
 
 ARMarkerDetector::~ARMarkerDetector()
@@ -702,7 +704,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			}
 		}
 	}
-	
+	//std::cout << c.Stop() << std::endl;
 	std::sort( quadResults.begin() , quadResults.end() , dissimilarityCompare );
 	//std::cout << "quad before " << quadResults.size() << std::endl;
 	for ( unsigned int i = 0; i < quadResults.size(); ++i )
@@ -972,25 +974,66 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 
 void ARMarkerDetector::findLines( std::vector<Line>& linesToAdd )
 {
-	std::vector<std::future<std::vector<Line>>> threads;
-	for ( long y = 0; y < height; y += 20 )
+	std::queue<std::future<std::vector<Line>>> threads;
+	//std::vector<std::future<std::vector<Line>>> threads;
+	unsigned int maxThreads = std::thread::hardware_concurrency();
+	if ( !maxThreads ) maxThreads = UINT_MAX;
+
+	long y = 0 , x = 0;
+	while ( y < height )
 	{
-		for ( long x = 0; x < width; x += 20 )
+		while ( x < width && threads.size() < maxThreads )
 		{
-			threads.push_back( std::async( std::launch::async , &ARMarkerDetector::findLinesOnRegion , this , x , y , 20 , 20 ) );
+			threads.push( std::async( std::launch::async , &ARMarkerDetector::findLinesOnRegion , this , x , y , 20 , 20 ) );
+			x += 20;
+		}
+		if ( x >= width )
+		{
+			y += 20;
+			x = 0;
+		}
+
+		if ( threads.size() >= maxThreads )
+		{
+			threads.front().wait();
+			std::vector<Line> theLines = threads.front().get();
+			threads.pop();
+			for ( unsigned int j = 0; j < theLines.size(); ++j )
+			{
+				linesToAdd.push_back( theLines[j] );
+			}
 		}
 	}
-	for ( unsigned int i = 0; i < threads.size(); ++i )
+
+	while ( threads.size() )
 	{
-		threads[i].wait();
-		std::vector<Line> theLines = threads[i].get();
+		threads.front().wait();
+		std::vector<Line> theLines = threads.front().get();
+		threads.pop();
 		for ( unsigned int j = 0; j < theLines.size(); ++j )
 		{
 			linesToAdd.push_back( theLines[j] );
-			//if(abs(theLines[j].angle) >= 100) std::cout << (int)theLines[j].angle << std::endl;
 		}
-		//std::cout << "num lines " << linesToAdd.size() << std::endl;
 	}
+
+	//for ( long y = 0; y < height; y += 20 )
+	//{
+	//	for ( long x = 0; x < width; x += 20 )
+	//	{
+	//		threads.push_back( std::async( std::launch::async , &ARMarkerDetector::findLinesOnRegion , this , x , y , 20 , 20 ) );
+	//	}
+	//}
+	//for ( unsigned int i = 0; i < threads.size(); ++i )
+	//{
+	//	threads[i].wait();
+	//	std::vector<Line> theLines = threads[i].get();
+	//	for ( unsigned int j = 0; j < theLines.size(); ++j )
+	//	{
+	//		linesToAdd.push_back( theLines[j] );
+	//		//if(abs(theLines[j].angle) >= 100) std::cout << (int)theLines[j].angle << std::endl;
+	//	}
+	//	//std::cout << "num lines " << linesToAdd.size() << std::endl;
+	//}
 
 	////debug
 	//{

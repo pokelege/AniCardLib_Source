@@ -8,6 +8,8 @@
 #include <Clock.h>
 #include <AniCardLibFileInfo.h>
 #include <Marker.h>
+#include <thread>
+#include <queue>
 unsigned long MarkerPack::lowestDissimilarity = ULONG_MAX;
 MarkerPack::MarkerPack() : debugPicture( 0 ) , cards( 0 )
 {
@@ -370,40 +372,91 @@ MarkerPack::FoundMarkerInfo MarkerPack::getSmallestDissimilarity( CompareWithMar
 	if ( minimum > maximum ) minimum = maximum;
 	threshold = (( maximum - minimum ) / 2) + minimum;
 	lowestDissimilarity = ULONG_MAX;
-	//AniCardLib::Clock c;
-	//c.Start();
-	std::vector < std::future<FoundMarkerInfo>> closestMarkerCorners;
-	for ( unsigned int i = 0; i < cards->getMarkerListSize(); ++i )
-	{
-		CompareWithMarkerInfo compareInfo;
-		compareInfo.marker = i;
-		compareInfo.picture = info.picture;
-		compareInfo.pictureHeight = info.pictureHeight;
-		compareInfo.pictureWidth = info.pictureWidth;
-		compareInfo.pos[0] = info.pos[0];
-		compareInfo.pos[1] = info.pos[1];
-		compareInfo.pos[2] = info.pos[2];
-		compareInfo.pos[3] = info.pos[3];
-		closestMarkerCorners.push_back( std::async( std::launch::async , &MarkerPack::getMarkerDissimilarity , this , compareInfo ) );
-	}
-	unsigned int closest = 0;
+
+	std::queue<std::future<FoundMarkerInfo>> closestMarkerCorners;
+	unsigned int numThreads = std::thread::hardware_concurrency();
+	unsigned int i = 0, j = 0;
 	unsigned long smallestDissimilarity = ULONG_MAX;
+	FoundMarkerInfo toReturn;
+	while ( i < cards->getMarkerListSize() )
+	{
+		while ( j < 4 && closestMarkerCorners.size() < numThreads )
+		{
+			CompareWithMarkerInfo compareOrientations;
+			compareOrientations.marker = i;
+			compareOrientations.picture = info.picture;
+			compareOrientations.pictureHeight = info.pictureHeight;
+			compareOrientations.pictureWidth = info.pictureWidth;
+			compareOrientations.pos[0] = info.pos[j% 4];
+			compareOrientations.pos[1] = info.pos[( j + 1 ) % 4];
+			compareOrientations.pos[2] = info.pos[( j + 2 ) % 4];
+			compareOrientations.pos[3] = info.pos[( j + 3 ) % 4];
+			compareOrientations.AsID = j;
+			closestMarkerCorners.push( std::async( std::launch::async , &MarkerPack::getMarkerCornerDissimilarity , this , compareOrientations ) );
+			++j;
+		}
+		if ( j >= 4 )
+		{
+			j = 0;
+			++i;
+		}
+		if ( closestMarkerCorners.size() >= numThreads )
+		{
+			closestMarkerCorners.front().wait();
+			FoundMarkerInfo theResult = closestMarkerCorners.front().get();
+			closestMarkerCorners.pop();
+			smallestDissimilarity = min( theResult.dissimilarity , smallestDissimilarity );
+			if ( smallestDissimilarity == theResult.dissimilarity ) toReturn = theResult;
+		}
+	}
+
+	while ( closestMarkerCorners.size() )
+	{
+		closestMarkerCorners.front().wait();
+		FoundMarkerInfo theResult = closestMarkerCorners.front().get();
+		closestMarkerCorners.pop();
+		smallestDissimilarity = min( theResult.dissimilarity , smallestDissimilarity );
+		if ( smallestDissimilarity == theResult.dissimilarity ) toReturn = theResult;
+	}
+
 	//AniCardLib::Clock c;
 	//c.Start();
-	std::vector<FoundMarkerInfo> foundInfos;
-	for ( unsigned int i = 0; i < closestMarkerCorners.size(); ++i )
-	{
-		closestMarkerCorners[i].wait();
-		FoundMarkerInfo theResult = closestMarkerCorners[i].get();
-		foundInfos.push_back( theResult );
-		smallestDissimilarity = min( theResult.dissimilarity , smallestDissimilarity );
-		if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
-		//std::cout << "dissimilarity " << i << " " << theResult.dissimilarity << std::endl;
-	}
+	//std::vector < std::future<FoundMarkerInfo>> closestMarkerCorners;
+	//for ( unsigned int i = 0; i < cards->getMarkerListSize(); ++i )
+	//{
+	//	CompareWithMarkerInfo compareInfo;
+	//	compareInfo.marker = i;
+	//	compareInfo.picture = info.picture;
+	//	compareInfo.pictureHeight = info.pictureHeight;
+	//	compareInfo.pictureWidth = info.pictureWidth;
+	//	compareInfo.pos[0] = info.pos[0];
+	//	compareInfo.pos[1] = info.pos[1];
+	//	compareInfo.pos[2] = info.pos[2];
+	//	compareInfo.pos[3] = info.pos[3];
+	//	closestMarkerCorners.push_back( std::async( std::launch::async , &MarkerPack::getMarkerDissimilarity , this , compareInfo ) );
+	//}
+	//unsigned int closest = 0;
+	//unsigned long smallestDissimilarity = ULONG_MAX;
+	//AniCardLib::Clock c;
+	//c.Start();
+	//std::vector<FoundMarkerInfo> foundInfos;
+	//for ( unsigned int i = 0; i < closestMarkerCorners.size(); ++i )
+	//{
+	//	closestMarkerCorners[i].wait();
+	//	FoundMarkerInfo theResult = closestMarkerCorners[i].get();
+	//	foundInfos.push_back( theResult );
+	//	smallestDissimilarity = min( theResult.dissimilarity , smallestDissimilarity );
+	//	if ( smallestDissimilarity == theResult.dissimilarity ) closest = i;
+	//	//std::cout << "dissimilarity " << i << " " << theResult.dissimilarity << std::endl;
+	//}
+
+
+
+
 	//std::cout << c.Stop() << std::endl;
 	//std::cout << "dissimilarity closest " << foundInfos[closest].dissimilarity << std::endl;
 	//std::cin.get();
 	//std::cout << "top " << c.Stop() << std::endl;
 	
-	return foundInfos[closest];
+	return toReturn;
 }

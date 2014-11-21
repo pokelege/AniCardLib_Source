@@ -32,6 +32,7 @@
 #include <Misc\ExtraFunctions.h>
 #include <Graphics\Light.h>
 #include <Graphics\GraphicsLightManager.h>
+#include <thread>
 War::War() : animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
