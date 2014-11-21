@@ -152,7 +152,6 @@ void War::initializeGL()
 	renderable1->shaderInfo = shader2;
 	renderable1->alphaBlendingEnabled = false;
 	renderable1->culling = CT_NONE;
-	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
 	animation = new AnimationRenderingInfo;
 	animation->animationFrameRate = 60;
 	player1 = GameObjectManager::globalGameObjectManager.addGameObject();
@@ -167,7 +166,6 @@ void War::initializeGL()
 	renderable2->shaderInfo = shader2;
 	renderable2->alphaBlendingEnabled = false;
 	renderable2->culling = CT_NONE;
-	//model1Renderable->setRenderableUniform( "extraModelToWorld" , PT_MAT4 , &transform , 1 );
 	animation2 = new AnimationRenderingInfo;
 	animation2->animationFrameRate = 60;
 	player2 = GameObjectManager::globalGameObjectManager.addGameObject();
@@ -273,7 +271,7 @@ void War::animationUpdate()
 {
 	glm::vec2 center = 0.5f * (marker1.center + marker2.center);
 	
-	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 1 , -(( center.y * plane->scale.y ) / 2) );
+	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 1 , (( center.y * plane->scale.y ) / 2) );
 	switch ( aniState )
 	{
 		case ToFight:
@@ -297,6 +295,7 @@ void War::animationUpdate()
 					animation->play( 2 );
 					animation2->play( 2 );
 				}
+				AudioController::globalAudioController.playSound( "assets/audio/hit.wav" );
 			}
 			player1->translate = glm::mix( player1OldPos , worldCenterPos , lerp );
 			player2->translate = glm::mix( player2OldPos , worldCenterPos , lerp );
@@ -314,12 +313,20 @@ void War::animationUpdate()
 				if ( marker1.cardIndex % 13 > marker2.cardIndex % 13 )
 				{
 					animation->play( 4 );
+					AudioController::globalAudioController.playSound( "assets/audio/applause.wav" );
 				}
 				else if ( marker1.cardIndex % 13 < marker2.cardIndex % 13 )
 				{
 					animation2->play( 4 );
+					AudioController::globalAudioController.playSound( "assets/audio/applause.wav" );
+				}
+				else
+				{
+					AudioController::globalAudioController.playSound( "assets/audio/aww.wav" );
 				}
 				land = landMax;
+				AudioController::globalAudioController.playSound( "assets/audio/land.wav" );
+				
 			}
 			player1->translate = glm::mix( player1OldPos , worldCenterPos , lerp );
 			player2->translate = glm::mix( player2OldPos , worldCenterPos , lerp );
@@ -343,13 +350,13 @@ void War::animationUpdate()
 			}
 			break;
 		default:
+			std::cout << worldCenterPos.x << ", " << worldCenterPos.z << std::endl;
 			aniState = ToFight;
 			animation->play( 1 );
 			animation2->play( 1 );
-			player1->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , ( worldCenterPos - glm::vec3( 0 , 1 , 0 ) ) - player1->translate , 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
-			player2->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , ( worldCenterPos - glm::vec3( 0 , 1 , 0 ) ) - player2->translate , 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
-			//player1->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player1OldPos , worldCenterPos - glm::vec3( 0 , 1 , 0 ) , glm::vec3( 0 , 1 , 0 ) ) ) );
-			//player2->rotate = glm::eulerAngles( glm::quat_cast( glm::lookAt(player2OldPos , worldCenterPos - glm::vec3(0,1,0)  , glm::vec3( 0 , 1 , 0 ) ) ) );
+			player1->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , (worldCenterPos - glm::vec3(0,1,0)) - player1OldPos, 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
+			player2->rotate = rotationBetweenVectors( glm::vec3( 0 , 0 , 1 ) , (worldCenterPos - glm::vec3( 0 , 1 , 0 )) - player2OldPos , 4 , glm::vec3( 0 , 0 , 1 ) , glm::vec3( 0 , 0 , -1 ) , glm::vec3( 1 , 0 , 0 ) , glm::vec3( -1 , 0 , 0 ) );
+			AudioController::globalAudioController.playSound( "assets/audio/jump.wav" );
 			break;
 	}
 }
@@ -372,6 +379,7 @@ bool War::findMarkers()
 				renderable1->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
 				renderable1->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
 				player1OldPos = characterPos;
+				AudioController::globalAudioController.playSound( "assets/audio/cardAppear.wav" );
 			}
 			else if ( marker2.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
 			{
@@ -383,6 +391,7 @@ bool War::findMarkers()
 				renderable2->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
 				renderable2->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
 				player2OldPos = characterPos2;
+				AudioController::globalAudioController.playSound( "assets/audio/cardAppear.wav" );
 			}
 		}
 
@@ -434,44 +443,6 @@ bool War::findMarkers()
 			marker2.cardIndex = UINT_MAX;
 		}
 	}
-		//if ( list.size() )
-		//{
-
-		//	marker1 = list.at( 0 );
-		//	player1Fails = 0;
-		//	/*glm::vec3 characterPos( ( list.at( 0 ).center.x * plane->scale.x ) , 0 , -( list.at( 0 ).center.y * plane->scale.z ) );
-		//	player1->translate = characterPos;
-		//	renderable1->geometryInfo = aniCardLib->getCardGeometry( list.at( 0 ).cardIndex );
-		//	renderable1->swapTexture( aniCardLib->getCardTexture( list.at( 0 ).cardIndex ) , 0 );*/
-		//	
-		//	player1->active = true;
-		//	if ( list.size() < 2 )
-		//	{
-		//		if ( player2->active && player2Fails < maxFails ) ++player2Fails;
-		//	}
-		//	else
-		//	{
-		//		for ( unsigned int i = 1; i < list.size(); ++i )
-		//		{
-		//			glm::vec3 characterPos2( ( list.at( i ).center.x * plane->scale.x )  , 0 , -( list.at( i ).center.y * plane->scale.y ) );
-		//			if ( glm::length( characterPos - characterPos2 ) > 0.5f )
-		//			{
-		//				player2Fails = 0;
-		//				player2->translate = characterPos2;
-		//				renderable2->geometryInfo = aniCardLib->getCardGeometry( list.at( i ).cardIndex );
-		//				renderable2->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
-		//				player2OldPos = characterPos2;
-		//				marker2 = list.at( i );
-		//				player2->active = true;
-		//				break;
-		//			}
-		//		}
-		//	}
-		//}
-		//else
-		//{
-		//	if ( player1->active && player1Fails < maxFails ) ++player1Fails;
-		//	if ( player2->active && player2Fails < maxFails ) ++player2Fails;
 	return (player1OK && player1->active) && (player2OK && player2->active);
 }
 
@@ -486,7 +457,6 @@ void War::paintGL()
 		{
 			float toSize = std::min( (float)width , (float)height );
 			toSize = 1.0f / toSize;
-			//std::cout << toSize * width << std::endl;
 			plane->scale = glm::vec3( toSize * width , 1.0f , toSize * height );
 		}
 	}

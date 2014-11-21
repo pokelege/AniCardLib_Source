@@ -10,7 +10,6 @@ in layout(location=7) vec4 blendingWeight;
 uniform mat4 viewToProjection;
 uniform mat4 worldToView;
 uniform mat4 modelToWorld;
-uniform mat4 extraModelToWorld;
 uniform mat4 animationMatrices[100];
 out vec2 uvsend;
 out vec4 positions;
