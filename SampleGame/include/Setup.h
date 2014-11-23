@@ -4,6 +4,7 @@
 #include <WebCamSource.h>
 #include <WebCamHelpers.h>
 class QComboBox;
+class QCheckBox;
 class Setup : public QWidget
 {
 	Q_OBJECT;

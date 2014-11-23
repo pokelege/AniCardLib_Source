@@ -3,6 +3,8 @@
 #include <QtGui\QComboBox>
 #include <QtGui\QPushButton>
 #include <QtGui\QVBoxLayout>
+#include <QtGui\QLabel>
+#include <QtGui\QCheckBox>
 #include "War.h"
 Setup::Setup()
 {
@@ -12,7 +14,9 @@ Setup::Setup()
 	resolutionSelection = new QComboBox;
 	QPushButton* button = new QPushButton( "Start" );
 	QVBoxLayout* layout = new QVBoxLayout;
+	layout->addWidget( new QLabel( "Camera" ) );
 	layout->addWidget( cameraSelection );
+	layout->addWidget( new QLabel( "Camera Resolution" ) );
 	layout->addWidget( resolutionSelection );
 	layout->addWidget( button );
 	setLayout( layout );
@@ -41,7 +45,7 @@ void Setup::run()
 	War* war = new War;
 	war->setAttribute( Qt::WA_DeleteOnClose );
 	war->setCameraSource( cameras.at( cameraSelection->currentIndex() ) , cameras.at( cameraSelection->currentIndex() ).modes.at( resolutionSelection->currentIndex() ) );
-	war->show();
+	war->showMaximized();
 	close();
 }
 

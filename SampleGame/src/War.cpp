@@ -268,10 +268,9 @@ void War::update()
 }
 
 void War::animationUpdate()
-{
-	glm::vec2 center = 0.5f * (marker1.center + marker2.center);
-	
-	glm::vec3 worldCenterPos( ( center.x * plane->scale.x ) / 2 , 1 , (( center.y * plane->scale.y ) / 2) );
+{	
+	glm::vec3 worldCenterPos = 0.5f * (player1OldPos + player2OldPos);
+	worldCenterPos.y = 1;
 	switch ( aniState )
 	{
 		case ToFight:
@@ -350,7 +349,6 @@ void War::animationUpdate()
 			}
 			break;
 		default:
-			std::cout << worldCenterPos.x << ", " << worldCenterPos.z << std::endl;
 			aniState = ToFight;
 			animation->play( 1 );
 			animation2->play( 1 );
