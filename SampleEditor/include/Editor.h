@@ -14,6 +14,7 @@ private slots:
 void initialize();
 void selectCard( int selected );
 void addCard();
+void swapCards();
 void addModel();
 void linkModel();
 void addTexture();

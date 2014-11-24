@@ -13,8 +13,13 @@ Editor::Editor()
 	QVBoxLayout* mainLayout = new QVBoxLayout;
 	mainLayout->addWidget( new QLabel( "AR Cards" ) );
 	mainLayout->addWidget( arCardsList = new QListWidget );
+	arCardsList->setSelectionMode( QAbstractItemView::SelectionMode::ExtendedSelection );
+	QHBoxLayout* arCardsButtons = new QHBoxLayout;
 	QPushButton* addCardButton;
-	mainLayout->addWidget( addCardButton = new QPushButton( "Add Card" ));
+	arCardsButtons->addWidget( addCardButton = new QPushButton( "Add Card" ) );
+	QPushButton* swapCardsButton;
+	arCardsButtons->addWidget( swapCardsButton = new QPushButton("Swap Cards") );
+	mainLayout->addLayout( arCardsButtons );
 
 	mainLayout->addWidget( new QLabel( "Models" ) );
 	mainLayout->addWidget( modelsList = new QListWidget );
@@ -50,6 +55,7 @@ Editor::Editor()
 	editor = 0;
 
 	connect( addCardButton , SIGNAL( clicked() ) , this , SLOT( addCard() ) );
+	connect( swapCardsButton , SIGNAL( clicked() ) , this , SLOT( swapCards() ) );
 	connect( addModelButton , SIGNAL( clicked() ) , this , SLOT( addModel() ) );
 	connect( linkModel , SIGNAL( clicked() ) , this , SLOT( linkModel() ) );
 	connect( addTextureButton , SIGNAL( clicked() ) , this , SLOT( addTexture() ) );
@@ -87,6 +93,37 @@ void Editor::addCard()
 		arCardsList->addItem( fileName.baseName());
 	}
 }
+
+void Editor::swapCards()
+{
+	QList<QListWidgetItem*> items = arCardsList->selectedItems();
+	if ( items.size() != 2 ) return;
+	int row1 , row2;
+	Marker* marker = editor->getMarker( row1 = arCardsList->row( items[0] ) );
+	Marker* marker2 = editor->getMarker( row2 = arCardsList->row( items[1] ) );
+
+	if ( !marker || !marker2 ) return;
+	Marker temp = *marker2;
+	*marker2 = *marker;
+	*marker = temp;
+
+	int maxs = std::max( row1 , row2 );
+	if ( maxs == row1 )
+	{
+		QListWidgetItem* item1 = arCardsList->takeItem( row1 );
+		QListWidgetItem* item2 = arCardsList->takeItem( row2 );
+		arCardsList->insertItem( row2 , item1 );
+		arCardsList->insertItem( row1 , item2 );
+	}
+	else
+	{
+		QListWidgetItem* item1 = arCardsList->takeItem( row2 );
+		QListWidgetItem* item2 = arCardsList->takeItem( row1 );
+		arCardsList->insertItem( row1 , item1 );
+		arCardsList->insertItem( row2 , item2 );
+	}
+}
+
 void Editor::addModel()
 {
 	QFileDialog dialogbox;
@@ -101,10 +138,14 @@ void Editor::addModel()
 void Editor::linkModel()
 {
 	if ( modelsList->currentRow() < 0 ) return;
-	Marker* marker = editor->getMarker( arCardsList->currentRow() );
-	if ( marker)
+	QList<QListWidgetItem*> items = arCardsList->selectedItems();
+	for ( int i = 0; i < items.size(); ++i )
 	{
-		marker->linkedModel = modelsList->currentRow();
+		Marker* marker = editor->getMarker( arCardsList->row( items[i] ) );
+		if ( marker )
+		{
+			marker->linkedModel = modelsList->currentRow();
+		}
 	}
 }
 void Editor::addTexture()
@@ -121,10 +162,14 @@ void Editor::addTexture()
 void Editor::linkTexture()
 {
 	if ( texturesList->currentRow() < 0 ) return;
-	Marker* marker = editor->getMarker( arCardsList->currentRow() );
-	if ( marker )
+	QList<QListWidgetItem*> items = arCardsList->selectedItems();
+	for ( int i = 0; i < items.size(); ++i )
 	{
-		marker->linkedTexture = texturesList->currentRow();
+		Marker* marker = editor->getMarker( arCardsList->row( items[i] ) );
+		if ( marker )
+		{
+			marker->linkedTexture = texturesList->currentRow();
+		}
 	}
 }
 void Editor::save()
