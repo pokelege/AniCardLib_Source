@@ -52,6 +52,11 @@ int MarkerPack::addTexture( const char* fileName , const int& cardToLink )
 {
 	return cards->addTexture( fileName , cardToLink );
 }
+int MarkerPack::addTexture( const char* data , const unsigned int& width , const unsigned int& height , const int& cardToLink)
+{
+	return cards->addTexture( data , width , height , cardToLink );
+}
+
 Marker* MarkerPack::getMarker( const unsigned int& id )
 {
 	return cards->getMarker( id );

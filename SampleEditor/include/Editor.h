@@ -22,7 +22,6 @@ void linkTexture();
 void save();
 void load();
 
-
 public:
 	Editor();
 	~Editor();

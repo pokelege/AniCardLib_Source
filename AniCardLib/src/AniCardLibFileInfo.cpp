@@ -140,6 +140,19 @@ int AniCardLibFileInfo::addTexture( const char* fileName , const int& cardToLink
 	return numTextures++;
 }
 
+int AniCardLibFileInfo::addTexture( const char* data , const unsigned int& width , const unsigned int& height , const int& cardToLink)
+{
+	TextureInfo* theTexture = textureManager.addTexture( data , width, height,0 );
+	if ( !theTexture ) return -1;
+	textures.push_back( theTexture );
+	if ( cardToLink >= 0 )
+	{
+		Marker* markers = ( Marker* ) cardData;
+		markers[cardToLink].linkedTexture = numTextures;
+	}
+	return numTextures++;
+}
+
 Marker* AniCardLibFileInfo::getMarker( const unsigned int& id )
 {
 	if ( id >= numCards ) return 0;

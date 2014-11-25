@@ -41,6 +41,12 @@ int AniCardLibCommonEditor::addTexture( const char* fileName , const int& cardTo
 	return markerPack->addTexture( fileName , cardToLink );
 }
 
+int AniCardLibCommonEditor::addTexture( const char* data , const unsigned int& width , const unsigned int& height , const int& cardToLink)
+{
+	if ( !markerPack ) return -1;
+	return markerPack->addTexture( data , width , height , cardToLink );
+}
+
 Marker* AniCardLibCommonEditor::getMarker( const unsigned int& id )
 {
 	if ( !markerPack ) return 0;

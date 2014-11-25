@@ -7,6 +7,7 @@
 #include <QtGui\QFileDialog>
 #include <QtCore\QCoreApplication>
 #include <Marker.h>
+#include <SOIL.h>
 #include <DebugMemory.h>
 Editor::Editor()
 {
@@ -139,6 +140,7 @@ void Editor::linkModel()
 {
 	if ( modelsList->currentRow() < 0 ) return;
 	QList<QListWidgetItem*> items = arCardsList->selectedItems();
+	if ( !items.size() ) return;
 	for ( int i = 0; i < items.size(); ++i )
 	{
 		Marker* marker = editor->getMarker( arCardsList->row( items[i] ) );
@@ -147,13 +149,39 @@ void Editor::linkModel()
 			marker->linkedModel = modelsList->currentRow();
 		}
 	}
+
+	selectCard( arCardsList->row( items[0] ) );
 }
 void Editor::addTexture()
 {
 	QFileDialog dialogbox;
-	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Texture" , QCoreApplication::applicationDirPath() , "*.tex" ) );
+	QFileInfo fileName( dialogbox.getOpenFileName( NULL , "Add Texture" , QCoreApplication::applicationDirPath() , "*.tex;*.png" ) );
+	
 	if ( !fileName.isFile() ) return;
-	int textureIndex = editor->addTexture( fileName.absoluteFilePath().toUtf8() );
+	int textureIndex = -1;
+	if ( QString::compare( fileName.suffix() , "tex" , Qt::CaseInsensitive ) == 0 )
+	{
+		textureIndex = editor->addTexture( fileName.absoluteFilePath().toUtf8() );
+	}
+	else
+	{
+		int width , height , channels;
+		unsigned char* theTex = SOIL_load_image( fileName.absoluteFilePath().toUtf8() , &width , &height , &channels , SOIL_LOAD_RGBA );
+		std::string outputStream;
+		for ( int y = height - 1; y >= 0; --y )
+		{
+			for ( int x = 0; x < width; ++x )
+			{
+				outputStream += std::string( ( char* ) &theTex[( y * 4 * width ) + ( x * 4 )] , sizeof( unsigned char ) );
+				outputStream += std::string( ( char* ) &theTex[( ( y * 4 * width ) + ( x * 4 ) ) + 1] , sizeof( unsigned char ) );
+				outputStream += std::string( ( char* ) &theTex[( ( y * 4 * width ) + ( x * 4 ) ) + 2] , sizeof( unsigned char ) );
+				outputStream += std::string( ( char* ) &theTex[( ( y * 4 * width ) + ( x * 4 ) ) + 3] , sizeof( unsigned char ) );
+			}
+		}
+
+		textureIndex = editor->addTexture( outputStream.c_str() , width , height );
+	}
+
 	if ( textureIndex >= 0 )
 	{
 		texturesList->addItem( fileName.baseName() );
@@ -163,6 +191,7 @@ void Editor::linkTexture()
 {
 	if ( texturesList->currentRow() < 0 ) return;
 	QList<QListWidgetItem*> items = arCardsList->selectedItems();
+	if ( !items.size() ) return;
 	for ( int i = 0; i < items.size(); ++i )
 	{
 		Marker* marker = editor->getMarker( arCardsList->row( items[i] ) );
@@ -171,6 +200,8 @@ void Editor::linkTexture()
 			marker->linkedTexture = texturesList->currentRow();
 		}
 	}
+
+	selectCard( arCardsList->row( items[0] ) );
 }
 void Editor::save()
 {
