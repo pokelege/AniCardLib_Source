@@ -33,6 +33,7 @@
 #include <Graphics\Light.h>
 #include <Graphics\GraphicsLightManager.h>
 #include <thread>
+#include <QtCore\QCoreApplication>
 War::War() : animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
@@ -251,6 +252,7 @@ void War::update()
 		camera->direction = glm::normalize( plane->translate - player->translate );
 	}
 	bool animate = findMarkers();
+	//std::cout << marker1.dissimilarity << ", " << marker2.dissimilarity << std::endl;
 	if ( !animating && animate )
 	{
 		animating = true;
@@ -378,6 +380,7 @@ bool War::findMarkers()
 				renderable1->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
 				player1OldPos = characterPos;
 				AudioController::globalAudioController.playSound( "assets/audio/cardAppear.wav" );
+				std::cout << "1: " << i << std::endl;
 			}
 			else if ( marker2.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
 			{
@@ -390,6 +393,7 @@ bool War::findMarkers()
 				renderable2->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
 				player2OldPos = characterPos2;
 				AudioController::globalAudioController.playSound( "assets/audio/cardAppear.wav" );
+				std::cout << "2: " << i << std::endl;
 			}
 		}
 
@@ -458,7 +462,6 @@ void War::paintGL()
 			plane->scale = glm::vec3( toSize * width , 1.0f , toSize * height );
 		}
 	}
-
 	//unsigned char* pictureData = 0;
 	//long width;
 	//long height;

@@ -164,6 +164,12 @@ int WebCamSource::initialize( CameraItem& camera , CameraMode& mode )
 	sampleGrabber->Release();
 	graph->QueryInterface( IID_PPV_ARGS( &media ) );
 	media->Run();
+	unsigned char* test = 0;
+	while ( !fetcher->getPicture( &test , 0 , 0 ) )
+	{
+		fetcher->finishedUsing();
+	}
+	fetcher->finishedUsing();
 	return 0;
 }
 

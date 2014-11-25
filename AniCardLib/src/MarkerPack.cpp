@@ -19,6 +19,10 @@ MarkerPack::MarkerPack() : debugPicture( 0 ) , cards( 0 )
 	theAs[2] = 0;
 	theAs[3] = 0;
 }
+MarkerPack::~MarkerPack()
+{
+	if ( cards ) delete cards;
+}
 
 bool MarkerPack::getPicture( unsigned char** bytes , long* width , long* height )
 {

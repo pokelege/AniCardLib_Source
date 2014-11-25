@@ -35,6 +35,7 @@ class ANICARDLIB_SHARED MarkerPack
 	static unsigned long lowestDissimilarity;
 public:
 	MarkerPack();
+	~MarkerPack();
 	int addMarker( const char* fileName , const int& linkedModel = -1 , const int& linkedTexture = -1 );
 	int addModel( const char* fileName , const int& cardToLink = -1 );
 	int addTexture( const char* fileName , const int& cardToLink = -1 );
