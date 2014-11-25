@@ -44,7 +44,6 @@ std::vector<CameraItem> WebCamHelpers::getListOfCameras()
 						const size_t newsize = origsize * 2;
 						char* nstring = new char[newsize];
 						wcstombs_s( &numConverted , nstring ,newsize, var.bstrVal , _TRUNCATE );
-						//wcstombs( nstring , var.bstrVal , origsize );
 
 						item.name = std::string( nstring );
 						delete[] nstring;

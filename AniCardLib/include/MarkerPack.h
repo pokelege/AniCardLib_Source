@@ -30,7 +30,6 @@ class ANICARDLIB_SHARED MarkerPack
 	unsigned int numUsing;
 	bool canGrab;
 	FoundMarkerInfo getMarkerCornerDissimilarity( CompareWithMarkerInfo info);
-	FoundMarkerInfo getMarkerDissimilarity( CompareWithMarkerInfo info );
 	FoundMarkerInfo getSmallestDissimilarity( CompareWithMarkerInfo info );
 	static unsigned long lowestDissimilarity;
 public:

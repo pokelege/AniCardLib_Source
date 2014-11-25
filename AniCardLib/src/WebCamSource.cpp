@@ -17,34 +17,6 @@ WebCamSource::~WebCamSource()
 	destroy();
 }
 
-//void WebCamSource::selectResolution( CameraConfigs& config )
-//{
-//	IPin* cameraPin;
-//	IEnumPins* enumPins;
-//	selectedCamera->EnumPins( &enumPins );
-//	while ( S_OK == enumPins->Next( 1 , &cameraPin , NULL ) )
-//	{
-//		PIN_DIRECTION pinDir;
-//		cameraPin->QueryDirection( &pinDir );
-//		if ( pinDir == PINDIR_OUTPUT ) break;
-//	}
-//
-//	IAMStreamConfig* configuration;
-//	cameraPin->QueryInterface( IID_IAMStreamConfig , ( void** ) &configuration );
-//	int count , size;
-//	configuration->GetNumberOfCapabilities( &count , &size );
-//	if ( size == sizeof( VIDEO_STREAM_CONFIG_CAPS ) )
-//	{
-//		VIDEO_STREAM_CONFIG_CAPS con;
-//		AM_MEDIA_TYPE* type;
-//		if ( SUCCEEDED( configuration->GetStreamCaps( config.index , &type , ( BYTE* ) &con ) ) )
-//		{
-//			configuration->SetFormat( type );
-//		}
-//	}
-//}
-
-
 int WebCamSource::initialize( CameraItem& camera , CameraMode& mode )
 {
 	CoCreateInstance( CLSID_FilterGraph , NULL , CLSCTX_INPROC_SERVER , IID_PPV_ARGS( &graph ) );

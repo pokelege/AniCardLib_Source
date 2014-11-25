@@ -79,12 +79,6 @@ STDMETHODIMP PictureFetcher::SampleCB( double SampleTime , IMediaSample *pSample
 }
 STDMETHODIMP PictureFetcher::BufferCB( double SampleTime , BYTE *pBuffer , long BufferLen )
 {
-	//if ( picture ) delete[] picture;
-	//canGrab = false;
-	//this->SampleTime = SampleTime;
-	//picture = new byte[BufferLen];
-	//bufferLength = BufferLen;
-	//memcpy( picture , pBuffer , BufferLen );
 	SampleTime;
 	pBuffer;
 	BufferLen;
