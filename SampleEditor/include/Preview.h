@@ -16,7 +16,7 @@ class Preview : public QGLWidget
 	QTimer updateTimer;
 	glm::vec2 cardScale;
 	TextureInfo* cardTexture;
-	GameObject* cardPlane;
+	
 	AnimationRenderingInfo* animations;
 	FirstPersonCameraInput* fpsInput;
 	GraphicsRenderingManager cardRenderer;
@@ -33,6 +33,7 @@ signals:
 void initialized();
 
 public:
+	GameObject* cardPlane;
 	RenderableInfo* modelRenderable;
 	~Preview();
 	void setCard( const unsigned char* cardImage , const unsigned int& width , const unsigned int& height, GeometryInfo* cardGeo = 0, TextureInfo* cardModelTexture = 0 );

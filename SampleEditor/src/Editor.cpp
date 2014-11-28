@@ -380,6 +380,14 @@ void Editor::frameIndexChanged( int index )
 		nextFrame->setValue( frameRange[index].nextAnimationFrameInfo );
 		startFrame->setValue( frameRange[index].firstFrame );
 		endFrame->setValue( frameRange[index].lastFrame );
+		if ( preview.modelRenderable && preview.modelRenderable->parent )
+		{
+			if ( Animator* ani = preview.modelRenderable->parent->getComponent<Animator>() )
+			{
+				ani->play( frameList->currentIndex() );
+			}
+			
+		}
 		changing = false;
 		blockSignals( false );
 	}
@@ -456,10 +464,26 @@ void Editor::selectModel( int selected )
 			cardGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
 			cardGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 			cardGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+
+			while ( frameList->count() )
+			{
+				frameList->removeItem( frameList->count() - 1 );
+			}
+
+			unsigned int numFrames = 0;
+			AnimationFrameRangeInfo* frameRange = preview.modelRenderable->geometryInfo->modelData->getAnimationFrameRange( &numFrames );
+			if ( frameRange )
+			{
+				for ( unsigned int i = 0; i < numFrames; ++i )
+				{
+					frameList->addItem( QString::number( i ) );
+				}
+				frameList->setCurrentIndex( 0 );
+				nextFrame->setMaximum( numFrames - 1 );
+			}
 		}
 	}
 	if ( texturesList->currentRow() >= 0 ) preview.modelRenderable->swapTexture(editor->getTexture( ( uint ) texturesList->currentRow() ), 0, 0);
-	std::cout << preview.modelRenderable->geometryInfo << std::endl;
 }
 
 void Editor::changeCardMode( bool isTrue )
@@ -467,9 +491,14 @@ void Editor::changeCardMode( bool isTrue )
 	if ( isTrue )
 	{
 		arCardsWidget->show();
+		if(preview.cardPlane)preview.cardPlane->active = true;
 		selectCard( arCardsList->currentRow() );
 	}
-	else arCardsWidget->hide();
+	else
+	{
+		arCardsWidget->hide();
+		if(preview.cardPlane)preview.cardPlane->active = false;
+	}
 }
 void Editor::changeModelMode( bool isTrue )
 {
