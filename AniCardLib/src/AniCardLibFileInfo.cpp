@@ -127,6 +127,22 @@ int AniCardLibFileInfo::addModel( const char* fileName , const int& cardToLink  
 	return numModels++;
 }
 
+int AniCardLibFileInfo::addRawModel( const char* data , const int& cardToLink )
+{
+	GeometryInfo* theGeo = geometryManager.addRawGeometry( data , bufferManager );
+	if ( !theGeo )
+	{
+		return -1;
+	}
+	geos.push_back( theGeo );
+	if ( cardToLink >= 0 )
+	{
+		Marker* markers = ( Marker* ) cardData;
+		markers[cardToLink].linkedModel = numModels;
+	}
+	return numModels++;
+}
+
 int AniCardLibFileInfo::addTexture( const char* fileName , const int& cardToLink)
 {
 	TextureInfo* theTexture = textureManager.addTexture( fileName , 0 );

@@ -50,6 +50,10 @@ int MarkerPack::addModel( const char* fileName , const int& cardToLink)
 {
 	return cards->addModel( fileName , cardToLink );
 }
+int MarkerPack::addRawModel( const char* data , const int& cardToLink )
+{
+	return cards->addRawModel( data , cardToLink );
+}
 int MarkerPack::addTexture( const char* fileName , const int& cardToLink )
 {
 	return cards->addTexture( fileName , cardToLink );

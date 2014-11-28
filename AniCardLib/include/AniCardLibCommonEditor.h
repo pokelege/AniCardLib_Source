@@ -16,6 +16,7 @@ public:
 	~AniCardLibCommonEditor();
 	int addMarker( const char* fileName , const int& linkedModel = -1 , const int& linkedTexture = -1 );
 	int addModel( const char* fileName , const int& cardToLink = -1 );
+	int addRawModel( const char* data , const int& cardToLink = -1 );
 	int addTexture( const char* fileName , const int& cardToLink = -1 );
 	int addTexture( const char* data , const unsigned int& width , const unsigned int& height , const int& cardToLink = -1 );
 	Marker* getMarker( const unsigned int& id );

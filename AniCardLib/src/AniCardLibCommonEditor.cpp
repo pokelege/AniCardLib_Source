@@ -66,6 +66,12 @@ int AniCardLibCommonEditor::addModel( const char* fileName , const int& cardToLi
 	if ( !markerPack ) return -1;
 	return markerPack->addModel( fileName , cardToLink );
 }
+int AniCardLibCommonEditor::addRawModel( const char* data , const int& cardToLink )
+{
+	if ( !markerPack ) return -1;
+	return markerPack->addRawModel( data , cardToLink );
+}
+
 int AniCardLibCommonEditor::addTexture( const char* fileName , const int& cardToLink )
 {
 	if ( !markerPack ) return -1;

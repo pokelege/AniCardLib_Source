@@ -19,6 +19,7 @@
 #include <QtGui\QGroupBox>
 #include <QtGui\QRadioButton>
 #include <Graphics\VertexInfo.h>
+#include <FBXConverter.h>
 #include <DebugMemory.h>
 #include <iostream>
 Editor::Editor()
@@ -200,12 +201,30 @@ void Editor::swapCards()
 void Editor::addModel()
 {
 	QFileDialog dialogbox;
-	QStringList fileNames( dialogbox.getOpenFileNames( NULL , "Add Model" , QString() , "*.pmd" ) );
+	QStringList fileNames( dialogbox.getOpenFileNames( NULL , "Add Model" , QString() , "*.pmd;*.obj;*.fbx" ) );
 	for ( int i = 0; i < fileNames.size(); ++i )
 	{
 		QFileInfo fileName( fileNames[i] );
 		if ( !fileName.isFile() ) return;
-		int modelIndex = editor->addModel( fileName.absoluteFilePath().toUtf8() );
+		//int modelIndex = editor->addModel( fileName.absoluteFilePath().toUtf8() );
+		//if ( modelIndex >= 0 )
+		//{
+		//	modelsList->addItem( fileName.baseName() );
+		//}
+
+
+		int modelIndex = -1;
+		if ( QString::compare( fileName.suffix() , "pmd" , Qt::CaseInsensitive ) == 0 )
+		{
+			modelIndex = editor->addModel( fileName.absoluteFilePath().toUtf8() );
+		}
+		else
+		{
+			FBXConverter converter;
+			std::string data = converter.convertToString( fileName.absoluteFilePath().toUtf8() );
+			modelIndex = editor->addRawModel( data.c_str() );
+		}
+
 		if ( modelIndex >= 0 )
 		{
 			modelsList->addItem( fileName.baseName() );
