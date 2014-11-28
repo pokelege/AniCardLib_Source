@@ -34,6 +34,7 @@
 #include <Graphics\GraphicsLightManager.h>
 #include <thread>
 #include <QtCore\QCoreApplication>
+#include <MarkerPack.h>
 War::War() : animating(false) , lerp(0) , speed(1)
 {
 	texture = 1;
@@ -248,8 +249,8 @@ void War::update()
 	aniCardLib->update();
 	if ( !animating )
 	{
-		player->translate = plane->translate + glm::vec3( 0 , 2 , 2 );
-		camera->direction = glm::normalize( plane->translate - player->translate );
+		//player->translate = plane->translate + glm::vec3( 0 , 2 , 2 );
+		//camera->direction = glm::normalize( plane->translate - player->translate );
 	}
 	bool animate = findMarkers();
 	//std::cout << marker1.dissimilarity << ", " << marker2.dissimilarity << std::endl;
@@ -380,7 +381,7 @@ bool War::findMarkers()
 				renderable1->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
 				player1OldPos = characterPos;
 				AudioController::globalAudioController.playSound( "assets/audio/cardAppear.wav" );
-				std::cout << "1: " << i << std::endl;
+				//std::cout << "1: " << i << std::endl;
 			}
 			else if ( marker2.used && ( marker1.cardIndex != list.at( i ).cardIndex && marker2.cardIndex != list.at( i ).cardIndex ) )
 			{
@@ -393,7 +394,7 @@ bool War::findMarkers()
 				renderable2->swapTexture( aniCardLib->getCardTexture( list.at( i ).cardIndex ) , 0 );
 				player2OldPos = characterPos2;
 				AudioController::globalAudioController.playSound( "assets/audio/cardAppear.wav" );
-				std::cout << "2: " << i << std::endl;
+				//std::cout << "2: " << i << std::endl;
 			}
 		}
 
@@ -404,6 +405,7 @@ bool War::findMarkers()
 			glm::vec3 characterPos( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
 			player1->translate = characterPos;
 			player1OldPos = characterPos;
+			marker1 = list.at( i );
 		}
 		else if ( marker1.used && marker1.cardIndex == list.at( i ).cardIndex ) player1OK = true;
 		else if ( !marker2.used && marker2.cardIndex == list.at( i ).cardIndex )
@@ -413,6 +415,7 @@ bool War::findMarkers()
 			glm::vec3 characterPos2( ( list.at( i ).center.x * plane->scale.x ) , 0 , -( list.at( i ).center.y * plane->scale.z ) );
 			player2->translate = characterPos2;
 			player2OldPos = characterPos2;
+			marker2 = list.at( i );
 		}
 		else if ( marker2.used && marker2.cardIndex == list.at( i ).cardIndex ) player2OK = true;
 		if ( player1OK && player2OK ) break;
@@ -462,14 +465,14 @@ void War::paintGL()
 			plane->scale = glm::vec3( toSize * width , 1.0f , toSize * height );
 		}
 	}
-	//unsigned char* pictureData = 0;
-	//long width;
-	//long height;
-	//if ( ARMarkerDetector::global.getPicture( &pictureData , &width , &height ) )
-	//{
-	//	GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
-	//	ARMarkerDetector::global.finishedUsing();
-	//}
+	unsigned char* pictureData = 0;
+	long width;
+	long height;
+	if ( aniCardLib->markerDetector->getPicture( &pictureData , &width , &height ) )
+	{
+		GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
+		aniCardLib->markerDetector->finishedUsing();
+	}
 	GraphicsSharedUniformManager::globalSharedUniformManager.updateLights();
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
 }

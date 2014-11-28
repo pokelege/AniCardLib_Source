@@ -25,9 +25,14 @@ Setup::Setup()
 	{
 		cameraSelection->addItem( cameras.at(i).name.c_str() );
 	}
-	cameraSelection->setCurrentIndex( -1 );
 	connect( cameraSelection , SIGNAL( activated( int ) ) , this , SLOT( selectedCamera( int ) ) );
 	connect( button , SIGNAL( clicked( bool ) ) , this , SLOT( run() ) );
+	if ( cameras.size() )
+	{
+		cameraSelection->setCurrentIndex( 0 );
+		selectedCamera( 0 );
+	}
+	else cameraSelection->setCurrentIndex( -1 );
 }
 
 void Setup::selectedCamera(int selection)

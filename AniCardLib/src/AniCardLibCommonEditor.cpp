@@ -2,7 +2,8 @@
 #include <MarkerPack.h>
 #include <Graphics\TextureInfo.h>
 #include <Marker.h>
-AniCardLibCommonEditor::AniCardLibCommonEditor() :markerPack( 0 )
+#include <AniCardLibFileNamesInfo.h>
+AniCardLibCommonEditor::AniCardLibCommonEditor() :markerPack(0) , names(0)
 {
 	markerPack = new MarkerPack;
 }
@@ -10,19 +11,49 @@ AniCardLibCommonEditor::AniCardLibCommonEditor() :markerPack( 0 )
 AniCardLibCommonEditor::~AniCardLibCommonEditor()
 {
 	if ( markerPack ) delete markerPack;
+	if ( names ) delete names;
 }
 
-void AniCardLibCommonEditor::load( const char* filename )
+void AniCardLibCommonEditor::load( const char* filename , const bool& loadNames )
 {
 	if ( markerPack ) delete markerPack;
 	markerPack = new MarkerPack();
 	markerPack->load( filename );
+	if ( loadNames )
+	{
+		if ( !names ) names = new AniCardLibFileNamesInfo;
+		names->load( ( std::string( filename ) + ".aclfn" ).c_str() );
+	}
+	else if ( names )
+	{
+		delete names;
+		names = 0;
+	}
 }
 
-bool AniCardLibCommonEditor::save( const char* filename )
+bool AniCardLibCommonEditor::save( const char* fileName , const bool& saveNames , const std::vector<std::string>& cards , const std::vector<std::string>& models, const std::vector<std::string>& textures )
 {
 	if ( !markerPack ) return false;
-	return markerPack->save( filename );
+	bool toReturn = markerPack->save( fileName );
+	if ( saveNames )
+	{
+		if ( toReturn )
+		{
+			if ( !names ) names = new AniCardLibFileNamesInfo;
+			names->save( ( std::string( fileName ) + ".aclfn" ).c_str(), cards, models, textures );
+		}
+		else if ( names )
+		{
+			delete names;
+			names = 0;
+		}
+	}
+	else if ( names )
+	{
+		delete names;
+		names = 0;
+	}
+	return toReturn;
 }
 
 int AniCardLibCommonEditor::addMarker( const char* fileName , const int& linkedModel, const int& linkedTexture)
@@ -110,4 +141,35 @@ bool AniCardLibCommonEditor::cardToTexture( TextureInfo* target , const unsigned
 	if ( !pointer ) return false;
 	target->editTexture( (char*)pointer , getMarker( id )->width , getMarker( id )->height , 0 );
 	return true;
+}
+
+std::string AniCardLibCommonEditor::getCardName( const unsigned int& index )
+{
+	if ( !names ) return std::string();
+	return names->getCardName( index );
+}
+unsigned int AniCardLibCommonEditor::getNumCards()
+{
+	if ( !names ) return 0;
+	return names->getNumCards();
+}
+std::string AniCardLibCommonEditor::getModelName( const unsigned int& index )
+{
+	if ( !names ) return std::string();
+	return names->getModelName( index );
+}
+unsigned int AniCardLibCommonEditor::getNumModels()
+{
+	if ( !names ) return 0;
+	return names->getNumModels();
+}
+std::string AniCardLibCommonEditor::getTextureName( const unsigned int& index )
+{
+	if ( !names ) return std::string();
+	return names->getTextureName( index );
+}
+unsigned int AniCardLibCommonEditor::getNumTextures()
+{
+	if ( !names ) return 0;
+	return names->getNumTextures();
 }

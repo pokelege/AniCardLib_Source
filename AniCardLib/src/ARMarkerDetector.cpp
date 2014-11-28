@@ -386,6 +386,17 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		}
 	}
 
+	for ( long y = 0; y < height; ++y )
+	{
+		for ( long x = 0; x < width; ++x )
+		{
+			unsigned long iOffset = ( unsigned long ) ( ( y * 4 * this->width ) + ( x * 4 ) );
+			float grayPixel = ( ( float ) copiedPictureInstance[iOffset] + ( float ) copiedPictureInstance[iOffset + 1] + ( float ) copiedPictureInstance[iOffset + 2] ) / 3.0f;
+			unsigned long i = ( unsigned long ) ( ( y ) * this->width + ( x ) );
+			grayscaleImage[i] = ( unsigned char ) grayPixel;
+		}
+	}
+
 	std::vector<Quad> quadResults;
 
 	bool constructing = true;
@@ -423,6 +434,54 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 			if (  markerPack->matchMarker( quadResult , grayscaleImage , width , height ) )
 			{
 				quadResults.push_back( quadResult );
+
+				//debug
+				{
+					canGrab = false;
+					while ( numUsing ) { canGrab = false; std::cout << "using" << std::endl; }
+					unsigned short randomColor = rand() % 255;
+					unsigned short randomColor2 = rand() % 255;
+					unsigned short randomColor3 = rand() % 255;
+					for ( unsigned int i = 0; i < 4; ++i )
+					{
+						
+						glm::vec2* start = &quadResult.pt[i];
+						glm::vec2* end = &quadResult.pt[(i + 1) % 4];
+						glm::vec2 normalized = glm::normalize( glm::vec2( *end ) - glm::vec2( *start ) );
+						glm::vec2 testPixel = glm::vec2( *start);
+						glm::ivec2 lastPixel = glm::ivec2(*start);
+						//std::cout << glm::ivec2( testPixel ).x << " " << glm::ivec2( testPixel ).y << std::endl;
+						unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+						//std::cout << lastPixel.y << std::endl;
+						//std::cout << lastPixel.x << std::endl;
+						if ( lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+						{
+							copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+							copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+							copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+						}
+						while ( glm::ivec2( testPixel ) == lastPixel )
+						{
+							testPixel += normalized;
+						}
+						lastPixel = glm::ivec2( testPixel );
+						while ( glm::length( testPixel - glm::vec2( *start ) ) <= glm::length( glm::vec2( *end ) - glm::vec2( *start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+						{
+							unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+							copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+							copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+							copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+							while ( glm::ivec2( testPixel ) == lastPixel )
+							{
+								testPixel += normalized;
+							}
+							lastPixel = glm::ivec2( testPixel );
+						}
+					}
+					canGrab = true;
+				}
+
+
 			}
 
 			for ( unsigned int i = 0; i < 4; ++i )
@@ -455,7 +514,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 	}
 
 	std::sort( quadResults.begin() , quadResults.end() , dissimilarityCompare );
-	std::cout << "quad before " << quadResults.size() << std::endl;
+	//std::cout << "quad before " << quadResults.size() << std::endl;
 	for ( unsigned int i = 0; i < quadResults.size(); ++i )
 	{
 
@@ -507,7 +566,57 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		else if ( start < 0 && ( int ) i + 1 < end ) quadResults.erase( quadResults.begin() + i + 1 , quadResults.begin() + end + 1 );
 		else if(start >= 0 && end >= 0) quadResults.erase( quadResults.begin() + start , quadResults.begin() + end + 1 );
 	}
-	std::cout << "quad after " << quadResults.size() << std::endl;
+
+	//debug
+	//{
+	//	canGrab = false;
+	//	while ( numUsing ) { canGrab = false; std::cout << "using" << std::endl; }
+	//	for ( unsigned int theTest = 0; theTest < quadResults.size(); ++theTest )
+	//	{
+	//		unsigned short randomColor = rand() % 255;
+	//		unsigned short randomColor2 = rand() % 255;
+	//		unsigned short randomColor3 = rand() % 255;
+	//		for ( unsigned int i = 0; i < 4; ++i )
+	//		{
+
+	//			glm::vec2* start = &quadResults[theTest].pt[i];
+	//			glm::vec2* end = &quadResults[theTest].pt[( i + 1 ) % 4];
+	//			glm::vec2 normalized = glm::normalize( glm::vec2( *end ) - glm::vec2( *start ) );
+	//			glm::vec2 testPixel = glm::vec2( *start );
+	//			glm::ivec2 lastPixel = glm::ivec2( *start );
+	//			//std::cout << glm::ivec2( testPixel ).x << " " << glm::ivec2( testPixel ).y << std::endl;
+	//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+	//			//std::cout << lastPixel.y << std::endl;
+	//			//std::cout << lastPixel.x << std::endl;
+	//			if ( lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+	//			{
+	//				copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+	//				copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+	//				copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+	//			}
+	//			while ( glm::ivec2( testPixel ) == lastPixel )
+	//			{
+	//				testPixel += normalized;
+	//			}
+	//			lastPixel = glm::ivec2( testPixel );
+	//			while ( glm::length( testPixel - glm::vec2( *start ) ) <= glm::length( glm::vec2( *end ) - glm::vec2( *start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+	//			{
+	//				unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+	//				copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+	//				copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+	//				copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+	//				while ( glm::ivec2( testPixel ) == lastPixel )
+	//				{
+	//					testPixel += normalized;
+	//				}
+	//				lastPixel = glm::ivec2( testPixel );
+	//			}
+	//		}
+	//	}
+	//	canGrab = true;
+	//}
+
+	//std::cout << "quad after " << quadResults.size() << std::endl;
 	canGrabMarkerFound = false;
 	while ( numUsingMarkerFound ) std::cout << numUsingMarkerFound << std::endl;
 	toSend.clear();
@@ -531,7 +640,7 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 		found.dissimilarity = quadResults[i].dissimilarity;
 		toSend.push_back( found );
 	}
-
+	//std::cin.get();
 	canGrabMarkerFound = true;
 }
 
@@ -545,31 +654,31 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 		float lineToCompareAngle = quadToEdit.line[3]->angle + 90;
 		if ( lineToCompareAngle >= 360 ) lineToCompareAngle -= 360;
 		if ( lineToCompareAngle < 0 ) lineToCompareAngle += 360;
-		bool found = length <= threshold;
+		
 		float angleDifference = abs( differenceBetweenAngles( lineToCompareAngle , quadToEdit.line[0]->angle ) );
-	
-		if ( !found && angleDifference  <= angleThreshold )
-		{
-			glm::vec2 d = glm::vec2(quadToEdit.line[3]->start - quadToEdit.line[0]->end);
-			glm::vec2 linebDir = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) );
-			glm::vec2 lineaDir = glm::normalize( glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
-			float determinant = ( linebDir.x * lineaDir.y ) - ( linebDir.y * lineaDir.x );
-			float u = ( ( d.y * linebDir.x ) - ( d.x * linebDir.y ) ) / determinant;
-			float v = ( ( d.y * lineaDir.x ) - ( d.x * lineaDir.y ) ) / determinant;
-			if ( u > 0 && v > 0 )
-			{
-				glm::vec2 newPosA = glm::vec2(quadToEdit.line[0]->end) + ( u * lineaDir );
-				glm::vec2 newPosB = glm::vec2( quadToEdit.line[3]->start ) + ( v * linebDir );
+		bool found = length <= threshold && angleDifference <= angleThreshold;
+		//if ( !found && angleDifference  <= angleThreshold )
+		//{
+		//	glm::vec2 d = glm::vec2(quadToEdit.line[3]->start - quadToEdit.line[0]->end);
+		//	glm::vec2 linebDir = glm::normalize( glm::vec2( quadToEdit.line[3]->end - quadToEdit.line[3]->start ) );
+		//	glm::vec2 lineaDir = glm::normalize( glm::vec2( quadToEdit.line[0]->start - quadToEdit.line[0]->end ) );
+		//	float determinant = ( linebDir.x * lineaDir.y ) - ( linebDir.y * lineaDir.x );
+		//	float u = ( ( d.y * linebDir.x ) - ( d.x * linebDir.y ) ) / determinant;
+		//	float v = ( ( d.y * lineaDir.x ) - ( d.x * lineaDir.y ) ) / determinant;
+		//	if ( u > 0 && v > 0 )
+		//	{
+		//		glm::vec2 newPosA = glm::vec2(quadToEdit.line[0]->end) + ( u * lineaDir );
+		//		glm::vec2 newPosB = glm::vec2( quadToEdit.line[3]->start ) + ( v * linebDir );
 
-				if ( newPosA == newPosB )
-				{
-					quadToEdit.line[0]->start = newPosA;
-					quadToEdit.line[3]->end = newPosB;
+		//		if ( newPosA == newPosB )
+		//		{
+		//			quadToEdit.line[0]->start = newPosA;
+		//			quadToEdit.line[3]->end = newPosB;
 
-					found = true;
-				}
-			}
-		}
+		//			found = true;
+		//		}
+		//	}
+		//}
 		return found;
 	}
 	bool found = false;
@@ -612,7 +721,6 @@ bool ARMarkerDetector::findQuad( ConstructingQuad& quadToEdit , std::vector<Line
 	if ( !found )
 	{
 		quadToEdit.line[index] = 0;
-		
 	}
 	
 	return found;

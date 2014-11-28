@@ -8,10 +8,12 @@ struct GeometryInfo;
 struct TextureInfo;
 class ANICARDLIB_SHARED AniCardLibCommonGame
 {
-	MarkerPack* markerPack;
-	ARMarkerDetector* markerDetector;
+	
+	
 	WebCamSource* webCam;
 public:
+	MarkerPack* markerPack;
+	ARMarkerDetector* markerDetector;
 	AniCardLibCommonGame();
 	~AniCardLibCommonGame();
 	void setMarkerPack( const char* filename );

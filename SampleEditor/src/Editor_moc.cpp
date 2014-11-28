@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Editor.h'
 **
-** Created: Sun Nov 23 23:07:50 2014
+** Created: Fri Nov 28 11:58:19 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.0)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_Editor[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      10,   14, // methods
+      18,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,23 +33,36 @@ static const uint qt_meta_data_Editor[] = {
  // slots: signature, parameters, type, tag, flags
        8,    7,    7,    7, 0x08,
       30,   21,    7,    7, 0x08,
-      46,    7,    7,    7, 0x08,
-      56,    7,    7,    7, 0x08,
-      68,    7,    7,    7, 0x08,
-      79,    7,    7,    7, 0x08,
-      91,    7,    7,    7, 0x08,
-     104,    7,    7,    7, 0x08,
-     118,    7,    7,    7, 0x08,
-     125,    7,    7,    7, 0x08,
+      46,   21,    7,    7, 0x08,
+      63,    7,    7,    7, 0x08,
+      73,    7,    7,    7, 0x08,
+      85,    7,    7,    7, 0x08,
+      96,    7,    7,    7, 0x08,
+     108,    7,    7,    7, 0x08,
+     121,    7,    7,    7, 0x08,
+     135,    7,    7,    7, 0x08,
+     142,    7,    7,    7, 0x08,
+     155,  149,    7,    7, 0x08,
+     178,    7,    7,    7, 0x08,
+     194,    7,    7,    7, 0x08,
+     213,    7,    7,    7, 0x08,
+     233,    7,    7,    7, 0x08,
+     258,  251,    7,    7, 0x08,
+     279,  251,    7,    7, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Editor[] = {
     "Editor\0\0initialize()\0selected\0"
-    "selectCard(int)\0addCard()\0swapCards()\0"
-    "addModel()\0linkModel()\0addTexture()\0"
-    "linkTexture()\0save()\0load()\0"
+    "selectCard(int)\0selectModel(int)\0"
+    "addCard()\0swapCards()\0addModel()\0"
+    "linkModel()\0addTexture()\0linkTexture()\0"
+    "save()\0load()\0index\0frameIndexChanged(int)\0"
+    "addFrameRange()\0changeParamsNext()\0"
+    "changeParamsStart()\0changeParamsEnd()\0"
+    "isTrue\0changeCardMode(bool)\0"
+    "changeModelMode(bool)\0"
 };
 
 void Editor::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -60,14 +73,22 @@ void Editor::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         switch (_id) {
         case 0: _t->initialize(); break;
         case 1: _t->selectCard((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 2: _t->addCard(); break;
-        case 3: _t->swapCards(); break;
-        case 4: _t->addModel(); break;
-        case 5: _t->linkModel(); break;
-        case 6: _t->addTexture(); break;
-        case 7: _t->linkTexture(); break;
-        case 8: _t->save(); break;
-        case 9: _t->load(); break;
+        case 2: _t->selectModel((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 3: _t->addCard(); break;
+        case 4: _t->swapCards(); break;
+        case 5: _t->addModel(); break;
+        case 6: _t->linkModel(); break;
+        case 7: _t->addTexture(); break;
+        case 8: _t->linkTexture(); break;
+        case 9: _t->save(); break;
+        case 10: _t->load(); break;
+        case 11: _t->frameIndexChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 12: _t->addFrameRange(); break;
+        case 13: _t->changeParamsNext(); break;
+        case 14: _t->changeParamsStart(); break;
+        case 15: _t->changeParamsEnd(); break;
+        case 16: _t->changeCardMode((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 17: _t->changeModelMode((*reinterpret_cast< bool(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -105,9 +126,9 @@ int Editor::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 10)
+        if (_id < 18)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 10;
+        _id -= 18;
     }
     return _id;
 }

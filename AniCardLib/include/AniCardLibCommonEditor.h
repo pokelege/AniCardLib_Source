@@ -1,12 +1,16 @@
 #pragma once
 #include <AniCardLibExportHeader.h>
+#include <string>
+#include <vector>
 class MarkerPack;
 struct GeometryInfo;
 struct TextureInfo;
 struct Marker;
+class AniCardLibFileNamesInfo;
 class ANICARDLIB_SHARED AniCardLibCommonEditor
 {
 	MarkerPack* markerPack;
+	AniCardLibFileNamesInfo* names;
 public:
 	AniCardLibCommonEditor();
 	~AniCardLibCommonEditor();
@@ -25,6 +29,14 @@ public:
 
 	unsigned char* getPicturePointer( const unsigned int& id );
 	bool cardToTexture( TextureInfo* target , const unsigned int& id );
-	bool save( const char* fileName );
-	void load( const char* fileName );
+	bool save( const char* fileName , const bool& saveNames = false , const std::vector<std::string>& cards = std::vector<std::string>() , const std::vector<std::string>& models = std::vector<std::string>() , const std::vector<std::string>& textures = std::vector<std::string>() );
+	void load( const char* fileName, const bool& loadNames = false );
+
+
+	std::string getCardName( const unsigned int& index );
+	unsigned int getNumCards();
+	std::string getModelName( const unsigned int& index );
+	unsigned int getNumModels();
+	std::string getTextureName( const unsigned int& index );
+	unsigned int getNumTextures();
 };
