@@ -169,7 +169,11 @@ void Preview::update()
 void Preview::paintGL()
 {
 	drawing = true;
-	while ( changingCard );
+	if ( changingCard )
+	{
+		drawing = false;
+		return;
+	}
 	cameras.drawAllCameras();
 	drawing = false;
 }
@@ -200,6 +204,16 @@ void Preview::setCard( const unsigned char* cardImage , const unsigned int& widt
 
 	modelRenderable->geometryInfo = cardGeo;
 	modelRenderable->swapTexture( cardModelTexture , 0 );
+	changingCard = false;
+}
+
+void Preview::lockUpdate()
+{
+	changingCard = true;
+	while ( drawing );
+}
+void Preview::unlockUpdate()
+{
 	changingCard = false;
 }
 

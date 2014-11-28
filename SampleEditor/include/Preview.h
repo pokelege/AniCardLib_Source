@@ -36,4 +36,6 @@ public:
 	RenderableInfo* modelRenderable;
 	~Preview();
 	void setCard( const unsigned char* cardImage , const unsigned int& width , const unsigned int& height, GeometryInfo* cardGeo = 0, TextureInfo* cardModelTexture = 0 );
+	void lockUpdate();
+	void unlockUpdate();
 };

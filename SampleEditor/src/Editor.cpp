@@ -18,7 +18,9 @@
 #include <Core\GameObject.h>
 #include <QtGui\QGroupBox>
 #include <QtGui\QRadioButton>
+#include <Graphics\VertexInfo.h>
 #include <DebugMemory.h>
+#include <iostream>
 Editor::Editor()
 {
 	QVBoxLayout* mainLayout = new QVBoxLayout;
@@ -313,6 +315,7 @@ void Editor::load()
 	QFileDialog dialogbox;
 	QString fileName = dialogbox.getOpenFileName( NULL , "Load File" , QString() , "*.aclf" ).toUtf8();
 	if ( fileName.isEmpty() ) return;
+	preview.lockUpdate();
 	delete editor;
 	editor = new AniCardLibCommonEditor;
 
@@ -357,7 +360,9 @@ void Editor::load()
 			texturesList->addItem( QString::number( i ) );
 		}
 	}
-	
+	preview.modelRenderable->geometryInfo = 0;
+	preview.modelRenderable->swapTexture( 0 , 0 , 0 );
+	preview.unlockUpdate();
 }
 
 void Editor::frameIndexChanged( int index )
@@ -440,8 +445,21 @@ void Editor::selectModel( int selected )
 {
 	selected;
 	if ( !editor || pmdEditorWidget->isHidden() ) return;
-	if ( modelsList->currentRow() >= 0 ) preview.modelRenderable->geometryInfo = editor->getGeometry( ( uint ) modelsList->currentRow() );
-	if ( texturesList->currentRow() >= 0 ) preview.modelRenderable->swapTexture(editor->getTexture( ( uint ) modelsList->currentRow() ), 0, 0);
+	if ( modelsList->currentRow() >= 0 )
+	{
+		GeometryInfo* cardGeo = editor->getGeometry( ( uint ) modelsList->currentRow() );
+
+		preview.modelRenderable->geometryInfo = cardGeo;
+		if ( cardGeo )
+		{
+			cardGeo->addShaderStreamedParameter( 0 , PT_VEC3 , VertexInfo::STRIDE , VertexInfo::POSITION_OFFSET );
+			cardGeo->addShaderStreamedParameter( 3 , PT_VEC2 , VertexInfo::STRIDE , VertexInfo::UV_OFFSET );
+			cardGeo->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
+			cardGeo->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
+		}
+	}
+	if ( texturesList->currentRow() >= 0 ) preview.modelRenderable->swapTexture(editor->getTexture( ( uint ) texturesList->currentRow() ), 0, 0);
+	std::cout << preview.modelRenderable->geometryInfo << std::endl;
 }
 
 void Editor::changeCardMode( bool isTrue )
