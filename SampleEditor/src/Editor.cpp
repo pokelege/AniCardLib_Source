@@ -54,24 +54,36 @@ Editor::Editor()
 	pmdEditorWidget = new QWidget;
 	QVBoxLayout* pmdEditorWidgetLayout = new QVBoxLayout;
 	QHBoxLayout* comboBoxLayout = new QHBoxLayout;
+	comboBoxLayout->addWidget( new QLabel( "Animation" ) );
 	frameList = new QComboBox;
 	comboBoxLayout->addWidget( frameList );
 	QPushButton* addFrames = new QPushButton( "Add" );
 	comboBoxLayout->addWidget( addFrames );
 
 	pmdEditorWidgetLayout->addLayout( comboBoxLayout );
+	QHBoxLayout* nextFrameLayout = new QHBoxLayout;
+	nextFrameLayout->addWidget( new QLabel( "Next Animation" ) );
 	nextFrame = new QSpinBox;
 	nextFrame->setRange( 0 , INT_MAX );
 	nextFrame->setValue( 0 );
-	pmdEditorWidgetLayout->addWidget( nextFrame );
+	nextFrameLayout->addWidget( nextFrame );
+	pmdEditorWidgetLayout->addLayout( nextFrameLayout );
+
+	QHBoxLayout* startFrameLayout = new QHBoxLayout;
+	startFrameLayout->addWidget( new QLabel( "Start Frame" ) );
 	startFrame = new QSpinBox;
 	startFrame->setRange( 0 , INT_MAX );
 	startFrame->setValue( 0 );
-	pmdEditorWidgetLayout->addWidget( startFrame );
+	startFrameLayout->addWidget( startFrame );
+	pmdEditorWidgetLayout->addLayout( startFrameLayout );
+
+	QHBoxLayout* endFrameLayout = new QHBoxLayout;
+	endFrameLayout->addWidget( new QLabel( "End Frame" ) );
 	endFrame = new QSpinBox;
 	endFrame->setRange( 0 , INT_MAX );
 	endFrame->setValue( INT_MAX );
-	pmdEditorWidgetLayout->addWidget( endFrame );
+	endFrameLayout->addWidget( endFrame );
+	pmdEditorWidgetLayout->addLayout( endFrameLayout );
 	pmdEditorWidget->setLayout( pmdEditorWidgetLayout );
 	mainLayout->addWidget( pmdEditorWidget );
 	pmdEditorWidget->hide();
@@ -206,12 +218,6 @@ void Editor::addModel()
 	{
 		QFileInfo fileName( fileNames[i] );
 		if ( !fileName.isFile() ) return;
-		//int modelIndex = editor->addModel( fileName.absoluteFilePath().toUtf8() );
-		//if ( modelIndex >= 0 )
-		//{
-		//	modelsList->addItem( fileName.baseName() );
-		//}
-
 
 		int modelIndex = -1;
 		if ( QString::compare( fileName.suffix() , "pmd" , Qt::CaseInsensitive ) == 0 )
