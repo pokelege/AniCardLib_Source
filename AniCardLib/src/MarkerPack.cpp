@@ -201,7 +201,7 @@ MarkerPack::FoundMarkerInfo MarkerPack::getMarkerCornerDissimilarity( CompareWit
 		}
 		
 		markerFoundInfo.dissimilarity = difference;
-		//lowestDissimilarity = min( lowestDissimilarity , difference );		
+		lowestDissimilarity = min( lowestDissimilarity , difference );		
 	}
 
 	//canGrab = false;

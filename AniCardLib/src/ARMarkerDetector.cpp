@@ -436,50 +436,50 @@ void ARMarkerDetector::_findCard( MarkerPack* markerPack )
 				quadResults.push_back( quadResult );
 
 				//debug
-				{
-					canGrab = false;
-					while ( numUsing ) { canGrab = false; std::cout << "using" << std::endl; }
-					unsigned short randomColor = rand() % 255;
-					unsigned short randomColor2 = rand() % 255;
-					unsigned short randomColor3 = rand() % 255;
-					for ( unsigned int i = 0; i < 4; ++i )
-					{
-						
-						glm::vec2* start = &quadResult.pt[i];
-						glm::vec2* end = &quadResult.pt[(i + 1) % 4];
-						glm::vec2 normalized = glm::normalize( glm::vec2( *end ) - glm::vec2( *start ) );
-						glm::vec2 testPixel = glm::vec2( *start);
-						glm::ivec2 lastPixel = glm::ivec2(*start);
-						//std::cout << glm::ivec2( testPixel ).x << " " << glm::ivec2( testPixel ).y << std::endl;
-						unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-						//std::cout << lastPixel.y << std::endl;
-						//std::cout << lastPixel.x << std::endl;
-						if ( lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
-						{
-							copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
-							copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
-							copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
-						}
-						while ( glm::ivec2( testPixel ) == lastPixel )
-						{
-							testPixel += normalized;
-						}
-						lastPixel = glm::ivec2( testPixel );
-						while ( glm::length( testPixel - glm::vec2( *start ) ) <= glm::length( glm::vec2( *end ) - glm::vec2( *start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
-						{
-							unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
-							copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
-							copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
-							copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
-							while ( glm::ivec2( testPixel ) == lastPixel )
-							{
-								testPixel += normalized;
-							}
-							lastPixel = glm::ivec2( testPixel );
-						}
-					}
-					canGrab = true;
-				}
+				//{
+				//	canGrab = false;
+				//	while ( numUsing ) { canGrab = false; std::cout << "using" << std::endl; }
+				//	unsigned short randomColor = rand() % 255;
+				//	unsigned short randomColor2 = rand() % 255;
+				//	unsigned short randomColor3 = rand() % 255;
+				//	for ( unsigned int i = 0; i < 4; ++i )
+				//	{
+				//		
+				//		glm::vec2* start = &quadResult.pt[i];
+				//		glm::vec2* end = &quadResult.pt[(i + 1) % 4];
+				//		glm::vec2 normalized = glm::normalize( glm::vec2( *end ) - glm::vec2( *start ) );
+				//		glm::vec2 testPixel = glm::vec2( *start);
+				//		glm::ivec2 lastPixel = glm::ivec2(*start);
+				//		//std::cout << glm::ivec2( testPixel ).x << " " << glm::ivec2( testPixel ).y << std::endl;
+				//		unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+				//		//std::cout << lastPixel.y << std::endl;
+				//		//std::cout << lastPixel.x << std::endl;
+				//		if ( lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+				//		{
+				//			copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+				//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+				//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+				//		}
+				//		while ( glm::ivec2( testPixel ) == lastPixel )
+				//		{
+				//			testPixel += normalized;
+				//		}
+				//		lastPixel = glm::ivec2( testPixel );
+				//		while ( glm::length( testPixel - glm::vec2( *start ) ) <= glm::length( glm::vec2( *end ) - glm::vec2( *start ) ) && lastPixel.x >= 0 && lastPixel.x < width && lastPixel.y >= 0 && lastPixel.y < height )
+				//		{
+				//			unsigned long iOffset = ( unsigned long ) ( ( lastPixel.y * 4 * this->width ) + ( lastPixel.x * 4 ) );
+				//			copiedPictureInstance[iOffset] = ( unsigned char ) randomColor;
+				//			copiedPictureInstance[iOffset + 1] = ( unsigned char ) randomColor2;
+				//			copiedPictureInstance[iOffset + 2] = ( unsigned char ) randomColor3;
+				//			while ( glm::ivec2( testPixel ) == lastPixel )
+				//			{
+				//				testPixel += normalized;
+				//			}
+				//			lastPixel = glm::ivec2( testPixel );
+				//		}
+				//	}
+				//	canGrab = true;
+				//}
 
 
 			}

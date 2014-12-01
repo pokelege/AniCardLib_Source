@@ -465,14 +465,14 @@ void War::paintGL()
 			plane->scale = glm::vec3( toSize * width , 1.0f , toSize * height );
 		}
 	}
-	unsigned char* pictureData = 0;
-	long width;
-	long height;
-	if ( aniCardLib->markerDetector->getPicture( &pictureData , &width , &height ) )
-	{
-		GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
-		aniCardLib->markerDetector->finishedUsing();
-	}
+	//unsigned char* pictureData = 0;
+	//long width;
+	//long height;
+	//if ( aniCardLib->markerDetector->getPicture( &pictureData , &width , &height ) )
+	//{
+	//	GraphicsTextureManager::globalTextureManager.editTexture( planeDebugTexture , ( char* ) pictureData , width , height , 1, GL_RGB );
+	//	aniCardLib->markerDetector->finishedUsing();
+	//}
 	GraphicsSharedUniformManager::globalSharedUniformManager.updateLights();
 	GraphicsCameraManager::globalCameraManager.drawAllCameras();
 }
