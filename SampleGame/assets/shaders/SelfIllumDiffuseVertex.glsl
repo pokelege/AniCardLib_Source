@@ -46,8 +46,8 @@ void main()
 		animatedPosition = vec4(position,1);
 		animatedNormals = normal;
 	}
-	vec4 newPosition = animatedPosition;
-	gl_Position = viewToProjection * worldToView  * modelToWorld  * newPosition;
+	vec4 newPosition = modelToWorld * animatedPosition;
+	gl_Position = viewToProjection * worldToView  * newPosition;
 	uvsend = uvs;
 	positions = newPosition;
 	normals = normalize(mat3(modelToWorld) * normalize(animatedNormals));

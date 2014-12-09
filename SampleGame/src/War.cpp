@@ -1,4 +1,5 @@
 #define GLM_FORCE_RADIANS
+#include <GL\glew.h>
 #include <War.h>
 #include <Graphics\CommonGraphicsCommands.h>
 #include <Core\GameObjectManger.h>
@@ -58,6 +59,7 @@ void War::initializeGL()
 {
 	CommonGraphicsCommands::initializeGlobalGraphics();
 	GameObjectManager::globalGameObjectManager.initialize();
+	GraphicsCameraManager::globalCameraManager.initialize( 2 );
 	ShaderInfo* shader;
 	{
 		std::string errors;
@@ -133,19 +135,7 @@ void War::initializeGL()
 	scene->addComponent( sceneRenderable );
 
 
-	camera = GraphicsCameraManager::globalCameraManager.addCamera();
-	camera->initializeRenderManagers();
-	camera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );
-	camera->FOV = 60.0f;
-	camera->nearestObject = 0.01f;
-	player = GameObjectManager::globalGameObjectManager.addGameObject();
-	player->translate = plane->translate + glm::vec3(0,2,2);
-	camera->direction = glm::normalize( plane->translate - player->translate );
-	player->addComponent( camera );
-	fpsInput = new FirstPersonCameraInput;
-	fpsInput->moveSensitivity = 0.1f;
-	fpsInput->rotationSensitivity = 0.1f;
-	player->addComponent( fpsInput );
+	
 
 
 	renderable1 = GraphicsRenderingManager::globalRenderingManager.addRenderable();
@@ -187,12 +177,40 @@ void War::initializeGL()
 		geoLoad->addShaderStreamedParameter( 6 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGINDEX_OFFSET );
 		geoLoad->addShaderStreamedParameter( 7 , PT_VEC4 , VertexInfo::STRIDE , VertexInfo::BLENDINGWEIGHT_OFFSET );
 	}
-
+	TextureInfo* depthTexture;
 	GameObject* lightBulb = GameObjectManager::globalGameObjectManager.addGameObject();
 	Light* light = GraphicsLightManager::global.addLight();
+	Camera* lightCamera = GraphicsCameraManager::globalCameraManager.addCamera();
+	lightCamera->initializeRenderManagers();
+	lightCamera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );
+	lightCamera->FOV = 60.0f;
+	lightCamera->nearestObject = 0.01f;
+	lightCamera->direction = glm::normalize( glm::vec3( 0 , -1 , -1 ) );
+	lightCamera->attatchFrameBuffer( 0 , depthTexture = GraphicsTextureManager::globalTextureManager.addTexture( 0 , 1024 , 1024 , 5 , GL_DEPTH_COMPONENT32 , GL_DEPTH_COMPONENT , GL_FLOAT ) );
 	light->setColor( glm::vec4( 1 , 1 , 1 , 1 ));
+	lightBulb->addComponent( lightCamera );
 	lightBulb->addComponent( light );
+	lightCamera->drawFrameBuffer = true;
+	lightCamera->drawCamera = false;
+	light->setDepthTexture( depthTexture );
 	lightBulb->translate = glm::vec3( 0 , 5 , 5 );
+
+	camera = GraphicsCameraManager::globalCameraManager.addCamera();
+	camera->initializeRenderManagers();
+	camera->addRenderList( &GraphicsRenderingManager::globalRenderingManager );
+	camera->addLights( &GraphicsLightManager::global );
+	camera->FOV = 60.0f;
+	camera->nearestObject = 0.01f;
+	camera->drawCamera = true;
+	player = GameObjectManager::globalGameObjectManager.addGameObject();
+	player->translate = plane->translate + glm::vec3( 0 , 2 , 2 );
+	camera->direction = glm::normalize( plane->translate - player->translate );
+	player->addComponent( camera );
+	fpsInput = new FirstPersonCameraInput;
+	fpsInput->moveSensitivity = 0.1f;
+	fpsInput->rotationSensitivity = 0.1f;
+	player->addComponent( fpsInput );
+
 	MouseInput::globalMouseInput.updateOldMousePosition = false;
 
 	setMouseTracking( true );
